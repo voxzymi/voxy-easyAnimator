@@ -1,0 +1,224 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://voxy.local/schemas/manifest-1.0.json",
+  "title": "Voxy EasyAnimator job manifest",
+  "type": "object",
+  "required": ["schema_version", "job", "models", "parts", "groups", "skipped", "keypoints", "hair", "errors", "warnings"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "job": {
+      "type": "object",
+      "required": ["id", "type", "status", "created_at"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "type": {"enum": ["make_layers", "subdivide_hair", "combine_hair", "upscale", "redraw_background"]},
+        "status": {"enum": ["ok", "partial", "failed", "cancelled"]},
+        "created_at": {"type": "string"},
+        "finished_at": {"type": ["string", "null"]},
+        "parent_job_id": {"type": ["string", "null"]},
+        "output_dir": {"type": ["string", "null"]}
+      }
+    },
+    "source": {
+      "type": ["object", "null"],
+      "required": ["width", "height"],
+      "additionalProperties": false,
+      "properties": {
+        "width": {"type": "integer", "minimum": 1},
+        "height": {"type": "integer", "minimum": 1},
+        "sha256": {"type": "string"}
+      }
+    },
+    "models": {
+      "type": "object",
+      "additionalProperties": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/modelInfo"}]}
+    },
+    "parts": {"type": "array", "items": {"$ref": "#/$defs/part"}},
+    "groups": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "parts"],
+        "additionalProperties": false,
+        "properties": {
+          "name": {"enum": ["Head", "Face", "Hair", "Torso", "Arms", "Legs", "Hidden"]},
+          "parts": {"type": "array", "items": {"type": "string"}, "minItems": 1}
+        }
+      }
+    },
+    "skipped": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "group", "reason"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string"},
+          "name": {"type": "string"},
+          "group": {"enum": ["Head", "Face", "Hair", "Torso", "Arms", "Legs", "Hidden"]},
+          "reason": {"enum": ["no_pixels"]}
+        }
+      }
+    },
+    "keypoints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "x", "y", "score"],
+        "additionalProperties": false,
+        "properties": {
+          "name": {"type": "string"},
+          "x": {"type": "number"},
+          "y": {"type": "number"},
+          "score": {"type": "number", "minimum": 0, "maximum": 1}
+        }
+      }
+    },
+    "hair": {
+      "type": "object",
+      "required": ["subdivision"],
+      "additionalProperties": false,
+      "properties": {
+        "subdivision": {
+          "type": "object",
+          "required": ["status"],
+          "additionalProperties": false,
+          "properties": {
+            "status": {"enum": ["not_run", "ok", "failed"]},
+            "count": {"type": "integer", "minimum": 0},
+            "smoothing": {"type": "number"},
+            "pivot": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/point"}]},
+            "error": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/error"}]}
+          }
+        }
+      }
+    },
+    "background": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "required": ["name", "image", "method", "bbox"],
+          "additionalProperties": false,
+          "properties": {
+            "name": {"const": "Background"},
+            "image": {"type": "string"},
+            "method": {"enum": ["model", "patch"]},
+            "bbox": {"$ref": "#/$defs/bbox"},
+            "z_order": {"type": "integer"},
+            "produced_by": {"$ref": "#/$defs/producedBy"}
+          }
+        }
+      ]
+    },
+    "upscale": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "required": ["status"],
+          "additionalProperties": false,
+          "properties": {
+            "status": {"enum": ["ok", "failed"]},
+            "image": {"type": ["string", "null"]},
+            "scale": {"type": "integer"},
+            "model": {"type": "string"},
+            "tile": {"type": "integer"},
+            "input_size": {"type": "array", "items": {"type": "integer"}, "minItems": 2, "maxItems": 2},
+            "output_size": {"type": "array", "items": {"type": "integer"}, "minItems": 2, "maxItems": 2},
+            "attempts": {"type": "integer"},
+            "error": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/error"}]}
+          }
+        }
+      ]
+    },
+    "errors": {"type": "array", "items": {"$ref": "#/$defs/error"}},
+    "warnings": {"type": "array", "items": {"$ref": "#/$defs/warning"}},
+    "timings_ms": {"type": "object", "additionalProperties": {"type": "number"}}
+  },
+  "$defs": {
+    "point": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2},
+    "bbox": {"type": "array", "items": {"type": "integer"}, "minItems": 4, "maxItems": 4},
+    "modelInfo": {
+      "type": "object",
+      "required": ["name", "version", "backend", "device"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {"type": "string"},
+        "version": {"type": "string"},
+        "backend": {"enum": ["stub", "onnx", "ncnn", "algorithm"]},
+        "device": {"enum": ["cuda", "cpu", "vulkan", "n/a"]}
+      }
+    },
+    "producedBy": {
+      "type": "object",
+      "required": ["model", "version", "backend"],
+      "additionalProperties": false,
+      "properties": {
+        "model": {"enum": ["general", "hair", "inpaint", "matting", "upscaler"]},
+        "version": {"type": "string"},
+        "backend": {"enum": ["stub", "onnx", "ncnn", "algorithm"]}
+      }
+    },
+    "part": {
+      "type": "object",
+      "required": ["id", "name", "group", "kind", "z_order", "bbox", "image", "mask", "outline", "pivot", "pixel_count", "produced_by"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9_]+$"},
+        "name": {"type": "string", "minLength": 1},
+        "group": {"enum": ["Head", "Face", "Hair", "Torso", "Arms", "Legs", "Hidden"]},
+        "class": {"type": ["string", "null"]},
+        "kind": {"enum": ["visible", "hidden", "subdivision"]},
+        "z_order": {"type": "integer"},
+        "bbox": {"$ref": "#/$defs/bbox"},
+        "image": {"type": "string"},
+        "mask": {"type": "string"},
+        "outline": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["points", "hole"],
+            "additionalProperties": false,
+            "properties": {
+              "points": {"type": "array", "items": {"$ref": "#/$defs/point"}, "minItems": 3},
+              "hole": {"type": "boolean"}
+            }
+          }
+        },
+        "pivot": {"$ref": "#/$defs/point"},
+        "pixel_count": {"type": "integer", "minimum": 1},
+        "parent": {"type": ["string", "null"]},
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        "produced_by": {"$ref": "#/$defs/producedBy"}
+      }
+    },
+    "error": {
+      "type": "object",
+      "required": ["code", "user_message", "what_to_do", "help_topic"],
+      "additionalProperties": false,
+      "properties": {
+        "code": {"type": "string"},
+        "stage": {"type": "string"},
+        "user_message": {"type": "string"},
+        "what_to_do": {"type": "string"},
+        "help_topic": {"type": "string"},
+        "recoverable": {"type": "boolean"},
+        "detail": {"type": "string"}
+      }
+    },
+    "warning": {
+      "type": "object",
+      "required": ["code", "user_message"],
+      "additionalProperties": false,
+      "properties": {
+        "code": {"type": "string"},
+        "user_message": {"type": "string"},
+        "what_to_do": {"type": "string"},
+        "help_topic": {"type": "string"}
+      }
+    }
+  }
+}

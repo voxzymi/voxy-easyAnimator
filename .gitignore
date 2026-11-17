@@ -1,0 +1,20 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+out/
+.venv/
+node_modules/
+# generated data and weights are never committed
+data/synthetic/*
+!data/synthetic/.gitkeep
+models/**/*.onnx
+models/**/*.pt
+models/**/*.pth
+data/raw/**/*.zip
+*.aep.autosave
+# bundled third-party binaries are fetched by installer/fetch_third_party.ps1
+installer/third_party_cache/
+ae_host/third_party/ae_sdk/
