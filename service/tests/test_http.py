@@ -148,3 +148,26 @@ def test_picture_urls_can_carry_the_token_but_other_routes_cannot(server):
     assert st == 401
     st, _ = call(base, "GET", f"/v1/jobs/{r['job_id']}?token=testtoken", token=None)
     assert st == 401
+
+
+def test_selftest_and_preflight_commands_for_the_installer(tmp_path):
+    import json, subprocess, sys
+    root = os.path.join(os.path.dirname(__file__), "..")
+    env = dict(os.environ, PYTHONPATH=root, VOXY_DATA_DIR=str(tmp_path / "d"))
+    r = subprocess.run([sys.executable, "-m", "voxy_service", "--selftest", "--data-dir", str(tmp_path / "d")], capture_output=True, text=True, cwd=root, env=env, timeout=300)
+    out = json.loads(r.stdout.strip().splitlines()[-1])
+    assert r.returncode == 0 and out["ok"] and [s["step"] for s in out["steps"]] == ["health", "sample"] and out["steps"][1]["parts"] >= 15
+    r = subprocess.run([sys.executable, "-m", "voxy_service", "--preflight", "--data-dir", str(tmp_path / "d")], capture_output=True, text=True, cwd=root, env=env, timeout=120)
+    pf = json.loads(r.stdout.strip().splitlines()[-1])
+    assert pf["overall"] in ("ok", "warn", "fail") and {c["id"] for c in pf["checks"]} >= {"gpu", "disk", "models"}
+    assert all(c["message"] and "ONNX" not in c["message"] and "manifest" not in c["message"].lower() for c in pf["checks"])   # plain words
+
+
+def test_preflight_plain_text_for_the_installer_wizard(tmp_path):
+    import subprocess, sys
+    root = os.path.join(os.path.dirname(__file__), "..")
+    r = subprocess.run([sys.executable, "-m", "voxy_service", "--preflight", "--plain", "--data-dir", str(tmp_path / "d")],
+                       capture_output=True, text=True, cwd=root, env=dict(os.environ, PYTHONPATH=root), timeout=120)
+    lines = [l for l in r.stdout.splitlines() if l.strip()]
+    assert lines and all(l[:5] in ("OK   ", "NOTE ", "FIX  ") for l in lines)
+    assert not any("{" in l for l in lines)

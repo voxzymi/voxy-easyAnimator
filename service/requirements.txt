@@ -1,0 +1,7 @@
+# Runtime dependencies of the service (pinned to the versions the tests ran with; see THIRD_PARTY_NOTICES.md).
+numpy==2.5.3
+Pillow==12.3.0
+PyYAML==6.0.3
+jsonschema==4.26.0
+opencv-python-headless==5.0.0.93
+onnxruntime==1.29.0          # CPU build. For the NVIDIA fast mode install onnxruntime-gpu==1.29.0 instead (never both).

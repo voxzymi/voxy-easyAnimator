@@ -1,0 +1,16 @@
+# Settings the installer puts at <app>/configs/service.yaml. No placeholder models in a release build.
+service:
+  host: 127.0.0.1
+  port: 0
+  allow_stub_models: false
+models:
+  root: models
+  general: {backend: onnx, version: "1.0.0"}    # models/general/1.0.0/model.onnx   (set to the version you ship)
+  hair: {backend: onnx, version: "1.0.0"}       # models/hair/1.0.0/model.onnx
+  matting: {backend: algorithm, version: "0.1.0"}
+  inpaint: {backend: patch, version: "0.1.0"}   # change to onnx when models/inpaint/<version> ships
+device: {prefer: cuda, cpu_fallback: true, gpu_mem_limit_mb: 4096}
+upscale:
+  model: realesr-animevideov3-x2
+  model_scale: 2
+  scale: 2

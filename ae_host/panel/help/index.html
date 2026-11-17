@@ -1,1 +1,246 @@
-<!doctype html><meta charset="utf-8"><title>Voxy EasyAnimator help</title><p>Built from docs/INSTALL.md by installer/build_help.py.</p>
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Voxy EasyAnimator help</title>
+<style>
+:root{color-scheme:light dark;--bg:#fff;--ink:#1c1e24;--mute:#5b6274;--line:#d5d8e0;--acc:#1b6fd8}
+@media (prefers-color-scheme:dark){:root{--bg:#1f2024;--ink:#eceef3;--mute:#a3a9b8;--line:#444855;--acc:#5aa9ff}}
+body{background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,"Segoe UI",sans-serif;margin:0}
+main{max-width:760px;margin:0 auto;padding:16px 20px 60px}
+h1,h2,h3{line-height:1.25}h2{margin-top:2em;border-top:1px solid var(--line);padding-top:.8em}
+img{max-width:100%;border:1px solid var(--line);border-radius:6px}code{background:rgba(127,127,127,.18);padding:1px 5px;border-radius:4px}
+a{color:var(--acc)}li{margin:.35em 0}
+</style></head><body><main>
+<h1 id="voxy-easyanimator-install-and-first-steps">Voxy EasyAnimator: install and first steps</h1>
+<p>This guide takes about ten minutes. You do not need to use a terminal or install Python.</p>
+<h2 id="requirements">1. Check the requirements</h2>
+<p>Check each item. If one is missing, read the note.</p>
+<ol>
+<li><strong>After Effects.</strong> Supported versions: After Effects 2022, After Effects 2023, After Effects 2024, After Effects 2025, After Effects 2026 (this list is not final)</li>
+<li><strong>Windows 10 or Windows 11, 64-bit.</strong></li>
+<li><strong>An NVIDIA graphics card.</strong> Voxy is made for an NVIDIA RTX 3060 with 12 GB. Other NVIDIA cards work too, but big pictures may be slower.</li>
+</ol>
+<ul>
+<li>No NVIDIA card? Voxy still works. It uses a slower mode and shows a note about it.</li>
+</ul>
+<ol>
+<li><strong>About 3 GB of free disk space.</strong></li>
+<li><strong>A recent NVIDIA driver.</strong> Voxy's upscaler needs it. Update it on NVIDIA's website if you are not sure.</li>
+</ol>
+<p><img alt="Step 1: the requirements" src="images/step-01.png"></p>
+<h2 id="download">2. Download the installer</h2>
+<ol>
+<li>Open the official Voxy EasyAnimator download page.</li>
+<li>Press the <strong>Download</strong> button.</li>
+<li>Wait for the file <code>VoxyEasyAnimator-Setup.exe</code> to finish downloading.</li>
+</ol>
+<p>Only download Voxy from the official page.</p>
+<p><img alt="Step 2: the download page" src="images/step-02.png"></p>
+<h2 id="run-installer">3. Run the installer</h2>
+<ol>
+<li><strong>Close After Effects.</strong> The installer cannot copy its files while After Effects is open.</li>
+<li>Double-click <code>VoxyEasyAnimator-Setup.exe</code>.</li>
+<li>If Windows shows a blue window that says "Windows protected your PC", read the note in <a href="#windows-warning">Windows shows a warning</a>. Then press <strong>More info</strong> and <strong>Run anyway</strong>.</li>
+<li><strong>License page.</strong> Read it. Choose <strong>I accept the agreement</strong>. Press <strong>Next</strong>.</li>
+<li><strong>Folder page.</strong> Keep the suggested folder. Press <strong>Next</strong>.</li>
+<li><strong>After Effects versions page.</strong> Keep the ticks on the versions you want. Press <strong>Next</strong>.</li>
+<li><strong>Shortcuts page.</strong> Tick the desktop shortcut if you want one. Press <strong>Next</strong>.</li>
+<li>Press <strong>Install</strong>. Wait until it finishes.</li>
+<li><strong>Checking your setup page.</strong> Read each line:</li>
+</ol>
+<ul>
+<li><strong>OK</strong> means that part is ready.</li>
+<li><strong>NOTE</strong> means Voxy works, with a small limit. For example: "Update your NVIDIA driver to use the fast mode. The slow mode will still work."</li>
+<li><strong>FIX</strong> means something must be fixed first. The line says what to do.</li>
+</ul>
+<ol>
+<li>Press <strong>Finish</strong>.</li>
+</ol>
+<p><img alt="Step 3: the installer" src="images/step-03.png"></p>
+<h2 id="panel-opens">4. Open the panel in After Effects</h2>
+<ol>
+<li>Start After Effects.</li>
+<li>Open a project, or make a new one.</li>
+<li>Choose <strong>Window</strong> in the top menu.</li>
+<li>Choose <strong>Extensions</strong>.</li>
+<li>Choose <strong>Voxy EasyAnimator</strong>.</li>
+</ol>
+<p>The panel opens. You can dock it like any other panel.</p>
+<p><img alt="Step 4: the Window menu" src="images/step-04.png"></p>
+<h2 id="first-run">5. First run: the welcome and the sample</h2>
+<p>The first time you open the panel, it shows a short welcome with four steps:</p>
+<ol>
+<li>Pick a layer.</li>
+<li>Press <strong>Make Layers</strong>.</li>
+<li>Hide any parts you do not want with the eye buttons.</li>
+<li>Press <strong>Add to Project</strong>.</li>
+</ol>
+<p>To see a result right away, press <strong>Try the sample character</strong>. The panel shows the sample cut into parts. The sample is only a preview. It does not change your project.</p>
+<p>To check that everything works, press <strong>Test setup</strong>. Each line shows a green check when it is fine. If a line is not fine, it tells you what to do.</p>
+<p><img alt="Step 5: the welcome" src="images/step-05.png"></p>
+<h2 id="make-layers">6. Make Layers on your own character</h2>
+<ol>
+<li>Open a composition.</li>
+<li>Click your character layer in the timeline. Select just one layer.</li>
+<li>Look at the panel. It shows the layer's picture without you pressing anything.</li>
+<li>Press <strong>Make Layers</strong>.</li>
+<li>Wait. The panel cuts your character into parts. Nothing is added to your project yet.</li>
+</ol>
+<p>Tips for the best result:</p>
+<ul>
+<li>Use a <strong>single character</strong>.</li>
+<li>Use <strong>flat colors</strong> and clean lines.</li>
+<li>Use a <strong>clean, plain background</strong>. A plain background gives the cleanest result.</li>
+<li>Keep the whole character in the picture, front view, arms away from the body.</li>
+</ul>
+<p>The panel lists the parts under groups: Head, Face, Hair, Torso, Arms, Legs, and Hidden. Hidden holds the parts that were covered, such as an eye under a fringe. Voxy draws what was behind them.</p>
+<p>If a part has nothing in it, Voxy leaves it out and tells you.</p>
+<p><strong>Background Removal.</strong> Turn this on before you press Make Layers. Voxy then also removes the background and redraws it as a separate layer.</p>
+<p><img alt="Step 6: Make Layers" src="images/step-06.png"></p>
+<h2 id="eye-buttons">7. Hide parts with the eye buttons</h2>
+<p>Every part has an eye button. Every group has one too.</p>
+<ol>
+<li>Press the eye next to a part to hide it.</li>
+<li>Press it again to show it.</li>
+<li>Press the eye next to the group name to hide or show the whole group.</li>
+</ol>
+<ul>
+<li>A half-open eye means some parts of the group are hidden.</li>
+</ul>
+<p><strong>The eyes only change the panel.</strong> They do not change your After Effects project or its timeline. Hidden parts are not added in the next step.</p>
+<p>When you press <strong>Make Layers</strong> again, all eyes open again.</p>
+<p><strong>Hair.</strong> Choose the <strong>Hair</strong> group in the list. You can then press <strong>Cut hair into subdivisions</strong>. Pick how many sections you want and how smooth the cuts are. Press <strong>Combine</strong> to make the hair one part again.</p>
+<p><img alt="Step 7: the eye buttons" src="images/step-07.png"></p>
+<h2 id="add-to-project">8. Add to Project</h2>
+<ol>
+<li>Check the parts. Hide the ones you do not want.</li>
+<li>Press <strong>Add to Project</strong>.</li>
+</ol>
+<p>Voxy adds every visible part to your composition. Each group becomes its own precomposition, named after the group. Inside, each part is its own layer. Each layer is masked so only its part shows. The pivot of each layer sits at a joint, so rotations turn where a joint would.</p>
+<p>Your original layer is not changed.</p>
+<p><strong>Add to Project is one undo step.</strong> Choose <strong>Edit &gt; Undo</strong> to undo it.</p>
+<p>To remove what the last Add to Project made, press <strong>Restore</strong>. Restore never removes layers you made or renamed yourself.</p>
+<p>In <strong>Settings</strong> you can choose to keep each group in one composition with folders instead of precomposition. Folders keep every part in your own composition. That makes it easier to link parts across groups.</p>
+<p><img alt="Step 8: Add to Project" src="images/step-08.png"></p>
+<h2 id="upscale">9. Upscale 2x</h2>
+<p>Upscale makes the picture of the <strong>selected layer</strong> twice as big.</p>
+<ol>
+<li>Click the layer in the timeline. It must be a still picture, such as a PNG or PSD layer.</li>
+<li>Press <strong>Upscale 2x</strong>.</li>
+<li>Wait. The panel shows the original and the bigger picture side by side.</li>
+<li>Nothing in your project has changed yet. Choose one:</li>
+</ol>
+<ul>
+<li>Press <strong>Apply in Project</strong> to use the bigger picture. The layer keeps its name, masks, position, and keyframes. The layer looks the same size as before.</li>
+<li>Press <strong>Discard</strong> to throw the bigger picture away. Your project stays exactly as it was.</li>
+</ul>
+<p>Apply in Project is one undo step. Voxy keeps a copy of the bigger picture in a folder called <strong>Voxy Upscaled</strong> next to your project.</p>
+<p>If your graphics card runs out of memory, tick <strong>Low memory mode</strong> and try again.</p>
+<p><img alt="Step 9: Upscale 2x" src="images/step-09.png"></p>
+<h2 id="save">10. Save, autosave, and recovery</h2>
+<p><strong>Save Project.</strong> Press <strong>Save Project</strong>. Voxy saves without asking questions. It then shows the time it saved. If the project has no name yet, After Effects asks you where to save it.</p>
+<p><strong>Autosave.</strong> While the panel is open, Voxy saves a backup copy on a timer. The default is every 5 minutes. Change it in the panel, or set it to 0 to turn it off. Backups go in a folder called <strong>Voxy Autosave</strong> next to your project. Voxy keeps the newest ten. An autosave never replaces your own saved project. If an autosave cannot finish, your saved project is untouched and the panel tells you.</p>
+<h3 id="crash-recovery">After a crash</h3>
+<ol>
+<li>Start After Effects again and open the Voxy panel.</li>
+<li>If After Effects closed by accident, the panel says so and offers your newest backup.</li>
+<li>Press <strong>Open the backup</strong> to get your work back. Your own project file is not changed.</li>
+<li>Press <strong>No thanks</strong> if you do not want it.</li>
+</ol>
+<p><img alt="Step 10: autosave and recovery" src="images/step-10.png"></p>
+<h2 id="troubleshooting">11. Troubleshooting</h2>
+<p>First press <strong>Test setup</strong> in the panel. It checks the most common problems and tells you what to do.</p>
+<h3 id="panel-does-not-appear">The panel does not appear</h3>
+<ol>
+<li>Make sure you closed and restarted After Effects after installing.</li>
+<li>Check <strong>Window &gt; Extensions</strong> in After Effects. Voxy EasyAnimator should be in the list.</li>
+<li>If it is not there, run the installer again. On the After Effects versions page, tick your version.</li>
+<li>If you installed an early test build, run the installer again and keep the option that lets After Effects open the panel.</li>
+</ol>
+<h3 id="gpu-not-detected">The graphics card is not found</h3>
+<ol>
+<li>Update your NVIDIA driver from NVIDIA's website. Restart your computer.</li>
+<li>Open the panel and press <strong>Test setup</strong>.</li>
+<li>If the card is still not found, Voxy keeps working in a slower mode. The panel shows a note while it does.</li>
+</ol>
+<h3 id="blank-preview">The preview is blank</h3>
+<ol>
+<li>Click your layer in the timeline.</li>
+<li>Make sure the layer is visible at the current time. Move the time marker onto the layer.</li>
+<li>Press <strong>Refresh picture</strong> in the panel.</li>
+<li>If the layer is a precomposition, open it and select a layer inside.</li>
+</ol>
+<h3 id="no-layer">No layer is selected</h3>
+<ol>
+<li>Open the composition that holds your character.</li>
+<li>Click your character layer once. Select just one layer.</li>
+</ol>
+<h3 id="service-wont-start">Voxy's helper program will not start</h3>
+<ol>
+<li>Close the panel and open it again.</li>
+<li>Press <strong>Test setup</strong>.</li>
+<li>Restart After Effects.</li>
+<li>Run the installer again to repair Voxy EasyAnimator.</li>
+<li>Press <strong>Open log file</strong> in the panel. Send the file to support.</li>
+</ol>
+<h3 id="windows-warning">Windows shows a warning</h3>
+<p>Windows may show "Windows protected your PC" for a new program. If you downloaded the installer from the official page, it is safe to continue.</p>
+<ol>
+<li>Press <strong>More info</strong>.</li>
+<li>Press <strong>Run anyway</strong>.</li>
+</ol>
+<p>Once the installer is signed with a certificate, the warning goes away.</p>
+<h3 id="slow-or-memory">Make Layers is slow</h3>
+<ol>
+<li>Check that the panel does not show the "slow mode" note. If it does, update your NVIDIA driver.</li>
+<li>Close other programs that use the graphics card.</li>
+<li>Use a smaller layer.</li>
+<li>Cut one character at a time.</li>
+</ol>
+<h3 id="make-layers-failed">Make Layers did not work</h3>
+<ol>
+<li>Use a picture with one character and a plain background.</li>
+<li>Press <strong>Make Layers</strong> again.</li>
+<li>If it keeps failing, press <strong>Open log file</strong> and send the file to support.</li>
+</ol>
+<h3 id="no-character">Voxy did not find a character</h3>
+<ol>
+<li>Select the layer that shows your character.</li>
+<li>Make sure the character is not hidden or transparent at the current time.</li>
+</ol>
+<h3 id="hair-failed">The hair sections did not work</h3>
+<p>Your single Hair part is still there. Try fewer sections, or keep the single part.</p>
+<h3 id="missing-files">Some of Voxy's files are missing</h3>
+<p>Run the installer again to repair Voxy EasyAnimator.</p>
+<h3 id="part-missing">A part is missing after Add to Project</h3>
+<ol>
+<li>Check the eye buttons. Hidden parts are not added.</li>
+<li>Check that the part is in the list. A part with nothing in it is left out, and the panel says so.</li>
+<li>Press <strong>Make Layers</strong> again, then <strong>Add to Project</strong>.</li>
+<li>If the composition changed size, press <strong>Make Layers</strong> again.</li>
+</ol>
+<h3 id="project-did-not-save">The project did not save</h3>
+<ol>
+<li>Press <strong>Save Project</strong> again.</li>
+<li>Check that the folder is not read-only and the disk is not full.</li>
+<li>Use <strong>File &gt; Save As</strong> to save to another place.</li>
+<li>If the panel says automatic backups were turned off, use <strong>File &gt; Save As</strong> to pick your project file again.</li>
+</ol>
+<h3 id="restore">Restore</h3>
+<p>Restore only undoes the last Add to Project. Press it again to undo the one before.</p>
+<h3 id="upscale-problems">Upscale did not work</h3>
+<ol>
+<li>Update your NVIDIA driver.</li>
+<li>Tick <strong>Low memory mode</strong> and try again.</li>
+<li>Use a smaller layer.</li>
+</ol>
+<h2 id="uninstall">12. Uninstall</h2>
+<ol>
+<li>Close After Effects.</li>
+<li>Open <strong>Settings &gt; Apps</strong> in Windows.</li>
+<li>Choose <strong>Voxy EasyAnimator</strong>.</li>
+<li>Press <strong>Uninstall</strong>.</li>
+<li>The uninstaller asks if you also want to delete your Voxy settings and the backups of projects that were never saved. Choose <strong>No</strong> to keep them.</li>
+</ol>
+<p>Backups that sit next to your own projects are never deleted.</p>
+<p><img alt="Step 12: uninstall" src="images/step-12.png"></p>
+</main></body></html>

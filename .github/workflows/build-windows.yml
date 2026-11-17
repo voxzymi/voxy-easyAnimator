@@ -1,0 +1,23 @@
+name: windows installer
+# NOT RUN YET. Needs: Inno Setup (installed below), and for a real release the AEGP .aex built with the Adobe SDK
+# (the SDK is not redistributable: build it locally and attach it, or add it as a private artifact) and, optionally,
+# a code-signing certificate in the repository secrets WIN_CERT_PFX_BASE64 / WIN_CERT_PASSWORD.
+on: { workflow_dispatch: {} }
+jobs:
+  installer:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Inno Setup
+        run: choco install innosetup -y
+      - name: Host tests (MSVC)
+        run: |
+          cmake -S ae_host -B ae_host\build
+          cmake --build ae_host\build --config Release
+          ctest --test-dir ae_host\build -C Release --output-on-failure
+      - name: Build installer (test build: version list is unconfirmed)
+        run: powershell -File installer\build_windows.ps1 -Version 0.1.0 -AllowUnconfirmed -UnsignedPanel
+      - uses: actions/upload-artifact@v4
+        with: { name: installer, path: build/installer/*.exe }

@@ -1,0 +1,27 @@
+name: tests
+on: [push, pull_request]
+jobs:
+  linux:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.13" }
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - name: Python packages
+        run: |
+          pip install -r service/requirements-dev.txt scipy pytest
+          pip install torch torchvision
+      - name: Service tests
+        run: cd service && PYTHONPATH=$PWD python -m pytest tests -q
+      - name: Training tests (CPU, tiny models)
+        run: PYTHONPATH=service/tests python -m pytest training/tests -q
+      - name: Host core (C++) tests against a fake After Effects
+        run: cmake -S ae_host -B ae_host/build -DCMAKE_BUILD_TYPE=Release && cmake --build ae_host/build -j && cd ae_host/build && ctest --output-on-failure
+      - name: Panel logic tests
+        run: cd ae_host/panel && node --test "tests/*.test.js"
+      - name: Frozen service runs without Python on its PATH
+        run: |
+          cd service && pyinstaller voxy_service.spec --noconfirm --distpath /tmp/dist --workpath /tmp/work
+          env -i PATH=/nonexistent /tmp/dist/voxy-service/voxy-service --selftest --data-dir /tmp/voxy-selftest

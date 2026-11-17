@@ -1,0 +1,15 @@
+[project]
+name = "voxy-service"
+version = "0.1.0"
+description = "Voxy EasyAnimator local service: cuts a flat character into parts. Listens on 127.0.0.1 only."
+requires-python = ">=3.10"
+dependencies = ["numpy", "Pillow", "PyYAML", "jsonschema", "opencv-python-headless", "onnxruntime"]
+
+[tool.setuptools.packages.find]
+include = ["voxy_service*"]
+
+[tool.setuptools.package-data]
+voxy_service = ["assets/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

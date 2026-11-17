@@ -1,0 +1,11 @@
+{
+  "confirmed": false,
+  "note": "DRAFT LIST, NOT CONFIRMED. The project owner must confirm which After Effects versions Voxy EasyAnimator supports. installer/build_windows.ps1 refuses to build a release installer while 'confirmed' is false (use -AllowUnconfirmed for test builds). Nothing here has been tested against a real After Effects install.",
+  "versions": [
+    {"name": "After Effects 2022", "major": 22, "registry_key": "22.0", "folder": "Adobe After Effects 2022"},
+    {"name": "After Effects 2023", "major": 23, "registry_key": "23.0", "folder": "Adobe After Effects 2023"},
+    {"name": "After Effects 2024", "major": 24, "registry_key": "24.0", "folder": "Adobe After Effects 2024"},
+    {"name": "After Effects 2025", "major": 25, "registry_key": "25.0", "folder": "Adobe After Effects 2025"},
+    {"name": "After Effects 2026", "major": 26, "registry_key": "26.0", "folder": "Adobe After Effects 2026"}
+  ]
+}

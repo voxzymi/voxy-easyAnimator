@@ -31,6 +31,50 @@ def pid_alive(pid: int) -> bool:
         return False
 
 
+def _check_mode(args) -> int:
+    """Used by the installer: no window, no network, nothing left behind except the checks' output."""
+    import json
+    import tempfile
+    import urllib.request
+
+    root = app_dir()
+    cfg_path = args.config or next((p for p in (os.path.join(root, "configs", "service.yaml"),) if os.path.isfile(p)), None)
+    cfg = load_config(cfg_path)
+    data_dir = args.data_dir or tempfile.mkdtemp(prefix="voxy-check-")
+    svc = Service(cfg, data_dir, root)
+    if args.preflight:
+        res = svc.preflight()
+        if args.plain:
+            mark = {"ok": "OK   ", "warn": "NOTE ", "fail": "FIX  "}
+            for c in res["checks"]:
+                print(f"{mark[c['status']]}{c['message']}" + (f" {c['what_to_do']}" if c["status"] != "ok" and c["what_to_do"] else ""))
+        else:
+            print(json.dumps(res))
+        return 1 if res["overall"] == "fail" else 0
+    steps = []
+    httpd = make_server(svc, "127.0.0.1", 0)
+    threading.Thread(target=httpd.serve_forever, daemon=True).start()
+    base = f"http://127.0.0.1:{svc.port}"
+    ok = True
+    try:
+        h = json.load(urllib.request.urlopen(base + "/v1/health", timeout=10))
+        steps.append({"step": "health", "ok": h.get("status") == "ok"})
+        req = urllib.request.Request(base + "/v1/jobs?wait=1", data=json.dumps({"type": "make_layers", "sample": True}).encode(),
+                                     headers={"Content-Type": "application/json", "X-Voxy-Token": svc.token})
+        r = json.load(urllib.request.urlopen(req, timeout=300))
+        m = r["manifest"]
+        good = m["job"]["status"] in ("ok", "partial") and len(m["parts"]) > 0
+        steps.append({"step": "sample", "ok": good, "parts": len(m["parts"]), "status": m["job"]["status"],
+                      "error": (m["errors"][0]["user_message"] if m["errors"] else None)})
+        ok = all(s["ok"] for s in steps)
+    except Exception as e:  # noqa: BLE001 - the installer only needs ok / not ok and a short reason
+        steps.append({"step": "error", "ok": False, "message": f"{type(e).__name__}: {e}"[:200]})
+        ok = False
+    httpd.shutdown()
+    print(json.dumps({"ok": ok, "steps": steps}))
+    return 0 if ok else 1
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="voxy-service", description="Voxy EasyAnimator local service (localhost only)")
     ap.add_argument("--config", help="YAML config file (default: configs/service.yaml next to the app, if present)")
@@ -39,12 +83,17 @@ def main(argv=None) -> int:
     ap.add_argument("--info-file", default=None, help="write {port, token, pid} here when ready")
     ap.add_argument("--parent-pid", type=int, default=0, help="exit when this process (After Effects) exits")
     ap.add_argument("--version", action="store_true")
+    ap.add_argument("--preflight", action="store_true", help="print the setup checks (plain words) as JSON and exit")
+    ap.add_argument("--plain", action="store_true", help="with --preflight: print one plain sentence per line instead of JSON")
+    ap.add_argument("--selftest", action="store_true", help="start, answer a health check, cut the sample character, then exit 0/1")
     args = ap.parse_args(argv)
     if args.version:
         from . import __version__
         print(__version__)
         return 0
 
+    if args.preflight or args.selftest:
+        return _check_mode(args)
     root = app_dir()
     cfg_path = args.config or next((p for p in (os.path.join(root, "configs", "service.yaml"),) if os.path.isfile(p)), None)
     cfg = load_config(cfg_path)

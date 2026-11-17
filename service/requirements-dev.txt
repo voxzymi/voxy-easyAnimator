@@ -1,0 +1,4 @@
+-r requirements.txt
+pytest
+onnx==1.23.2                 # only the tests that build a tiny model use it
+pyinstaller>=6.10

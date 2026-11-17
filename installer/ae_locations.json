@@ -1,0 +1,13 @@
+{
+  "verified": false,
+  "note": "These install locations were written from memory of Adobe's layout and could NOT be checked against Adobe's documentation (the documentation host was not reachable from the build environment). Verify each on a real machine before release (docs/install_test_checklist.md).",
+  "ae_install_detection": [
+    {"how": "registry", "hive": "HKLM", "key": "SOFTWARE\\Adobe\\After Effects\\<registry_key>", "value": "InstallPath"},
+    {"how": "folder", "pattern": "%ProgramFiles%\\Adobe\\<folder>"}
+  ],
+  "aegp_plugin_folder": "<install path>\\Support Files\\Plug-ins\\Voxy",
+  "panel_folder_all_users": "%CommonProgramFiles(x86)%\\Adobe\\CEP\\extensions\\com.voxy.easyanimator",
+  "panel_folder_current_user": "%APPDATA%\\Adobe\\CEP\\extensions\\com.voxy.easyanimator",
+  "unsigned_panel_note": "CEP only loads an unsigned panel if the registry value HKCU\\Software\\Adobe\\CSXS.<n>\\PlayerDebugMode is 1. For a public release sign the panel as a ZXP (ZXPSignCmd) instead, and do not set PlayerDebugMode.",
+  "process_name_for_closed_check": "AfterFX.exe"
+}

@@ -77,7 +77,18 @@ def default_data_dir() -> str:
 
 
 def app_dir() -> str:
-    """Folder that holds the installed app (models, tools). Frozen builds: next to the executable."""
+    """Folder that holds the installed app (models, configs, tools).
+
+    Installed layout:  <app>/service/voxy-service.exe  next to  <app>/models, <app>/configs, <app>/tools.
+    Frozen builds look at the executable's folder and then its parent for those folders. In a checkout it is the repo root.
+    """
+    env = os.environ.get("VOXY_APP_DIR")
+    if env:
+        return env
     if getattr(sys, "frozen", False):
-        return os.path.dirname(sys.executable)
+        here = os.path.dirname(sys.executable)
+        for cand in (here, os.path.dirname(here)):
+            if any(os.path.isdir(os.path.join(cand, d)) for d in ("models", "configs")):
+                return cand
+        return here
     return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))

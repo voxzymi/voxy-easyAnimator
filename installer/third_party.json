@@ -1,0 +1,12 @@
+{
+  "note": "Every bundled third-party component. 'sha256' MUST be filled with the hash of the exact file you ship; installer/fetch_third_party.ps1 refuses empty hashes. Licenses were read from the upstream repositories' own pages where reachable; confirm them before shipping.",
+  "components": [
+    {"name": "upscayl-ncnn", "role": "2x upscaler (run as a separate program)", "license": "AGPL-3.0", "source": "https://github.com/upscayl/upscayl-ncnn", "version": "PIN A COMMIT", "sha256": "",
+     "obligations": "AGPL-3.0: ship the license text and the exact corresponding source (or a written offer) for the binary you bundle. Voxy runs it as a separate program and does not link it."},
+    {"name": "realesr-animevideov3-x2 (ncnn param/bin)", "role": "upscaling model", "license": "BSD-3-Clause (Real-ESRGAN)", "source": "https://github.com/xinntao/Real-ESRGAN", "version": "PIN", "sha256": "",
+     "obligations": "Keep the copyright notice; confirm the license of the exact converted files you ship."},
+    {"name": "Voxy general dissection model", "role": "part cutting", "license": "Project weights (owner to decide)", "source": "models/general/<version>", "version": "1.0.0", "sha256": "", "obligations": "Trained only on data with a recorded license (docs/models.md)."},
+    {"name": "Voxy hair subdivision model", "role": "hair sections", "license": "Project weights (owner to decide)", "source": "models/hair/<version>", "version": "1.0.0", "sha256": "", "obligations": "Same."},
+    {"name": "Python runtime + packages (inside voxy-service)", "role": "the cutting service", "license": "PSF / BSD / MIT / Apache-2.0 (see THIRD_PARTY_NOTICES.md)", "source": "PyPI", "version": "see service/requirements.txt", "sha256": "", "obligations": "Keep notices."}
+  ]
+}
