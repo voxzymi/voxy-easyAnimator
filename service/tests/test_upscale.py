@@ -209,3 +209,13 @@ def test_upscale_job_reports_oom_and_timeout(up_svc, frame, monkeypatch):
     up_svc.cfg["timeouts_s"]["upscale"] = 0.5
     _, m = run_job(up_svc, "upscale", {"type": "upscale", "image_path": frame[0]})
     assert m["errors"][0]["code"] == "UPSCALER_TIMEOUT"
+
+
+def test_low_memory_mode_starts_with_small_tiles(up_svc, frame, monkeypatch, tmp_path):
+    log = tmp_path / "calls.log"
+    monkeypatch.setenv("FAKE_UPSCAYL_LOG", str(log))
+    _, m = run_job(up_svc, "upscale", {"type": "upscale", "image_path": frame[0], "options": {"low_memory": True}})
+    assert m["job"]["status"] == "ok"
+    tiles = [int(l.split("-t ")[1].split()[0]) for l in log.read_text().splitlines()]
+    assert tiles[0] == 128                                   # no "auto" first attempt in low-memory mode
+    assert m["upscale"]["tile"] == 128

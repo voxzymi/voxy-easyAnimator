@@ -1,6 +1,7 @@
 #include "commands.h"
 
 #include <algorithm>
+#include <cctype>
 #include <set>
 
 namespace voxy {
@@ -204,7 +205,8 @@ json Commands::restore() {
     ++removed_items;
   }
   journal_.mark_restored(rec->id);
-  return {{"restored_add_id", rec->id}, {"removed_layers", removed_layers}, {"removed_items", removed_items},
+  bool more = journal_.last_active(api_.project_path(), api_.project_id()).has_value();
+  return {{"more", more}, {"restored_add_id", rec->id}, {"removed_layers", removed_layers}, {"removed_items", removed_items},
           {"re_enabled_layers", reenabled}, {"kept", kept}};
 }
 
@@ -217,11 +219,29 @@ json Commands::apply_upscale(const json& req) {
   if (api_.layer_source_kind(layer) != "still") throw make_error("NOT_A_PICTURE_LAYER");
   if (!fs::exists(path)) throw make_error("PART_FILE_MISSING", path);
   std::string name = api_.layer_name(layer);
-  {
+  // After Effects links to the file, so it must not be the temporary one: keep a copy next to the project
+  // (or in Voxy's folder for an unsaved project). The temporary file can then be deleted freely.
+  const std::string project = api_.project_path();
+  fs::path dir = project.empty() ? data_dir_ / "upscaled" : fs::path(project).parent_path() / "Voxy Upscaled";
+  std::error_code ec;
+  fs::create_directories(dir, ec);
+  std::string safe;
+  for (char c : name) safe += (std::isalnum(static_cast<unsigned char>(c)) || c == '-' || c == '_' || c == '.') ? c : '_';
+  fs::path dest = dir / (safe + "_x2_" + now_stamp() + ".png");
+  for (int n = 2; fs::exists(dest, ec) && n < 1000; ++n) dest = dir / (safe + "_x2_" + now_stamp() + "_" + std::to_string(n) + ".png");
+  fs::copy_file(path, dest, fs::copy_options::none, ec);
+  if (ec) throw make_error("ADD_FAILED", "cannot keep a copy of the upscaled picture: " + ec.message());
+  try {
     UndoGroup undo(api_, "Voxy: Apply Upscale");
-    api_.replace_layer_source(layer, path, factor);
+    api_.replace_layer_source(layer, path_str(dest), factor);
+  } catch (const HostError&) {
+    fs::remove(dest, ec);
+    throw;
+  } catch (const std::exception& e) {
+    fs::remove(dest, ec);
+    throw make_error("ADD_FAILED", e.what());
   }
-  return {{"layer_id", layer}, {"layer_name", name}, {"factor", factor}};
+  return {{"layer_id", layer}, {"layer_name", name}, {"factor", factor}, {"file", path_str(dest)}};
 }
 
 // ------------------------------------------------------------------ save / autosave

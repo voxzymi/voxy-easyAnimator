@@ -157,6 +157,19 @@ void Bridge::handle(net::Socket s) {
     }
     std::string cmd = req["cmd"];
     req.erase("cmd");
+    if (cmd == "ensure_service") {
+      json out;
+      try {
+        if (!service_starter_) throw make_error("SERVICE_START_FAILED", "no service configured");
+        out = {{"ok", true}, {"result", service_starter_(req)}};
+      } catch (const HostError& e) {
+        out = {{"ok", false}, {"error", e.to_json()}};
+      } catch (const std::exception& e) {
+        out = {{"ok", false}, {"error", make_error("SERVICE_START_FAILED", e.what()).to_json()}};
+      }
+      net::send_all(s, reply(200, "OK", out.dump()));
+      return;
+    }
     json out = queue_.run([this, cmd, req] { return cmds_.dispatch(cmd, req); }, timeout_);
     net::send_all(s, reply(200, "OK", out.dump()));
     return;

@@ -137,8 +137,10 @@ def make_handler(svc: Service):
             host = (self.headers.get("Host") or "").split(":")[0].lower()
             return host in ("127.0.0.1", "localhost", "[::1]", "")
 
-        def _authed(self) -> bool:
+        def _authed(self, query: Optional[Dict[str, Any]] = None, allow_query: bool = False) -> bool:
             tok = self.headers.get("X-Voxy-Token") or ""
+            if not tok and allow_query and query:                     # <img> tags cannot send headers: picture URLs carry the token
+                tok = (query.get("token") or [""])[0]
             if not tok and (self.headers.get("Authorization") or "").startswith("Bearer "):
                 tok = self.headers["Authorization"][7:]
             return secrets.compare_digest(tok, svc.token)
@@ -160,7 +162,8 @@ def make_handler(svc: Service):
             try:
                 if method == "GET" and path == "/v1/health":
                     return self._send(200, svc.health())
-                if not self._authed():
+                is_file = method == "GET" and "/files/" in path
+                if not self._authed(q, allow_query=is_file):
                     return self._error("UNAUTHORIZED", "missing or wrong token")
                 if method == "GET" and path == "/v1/preflight":
                     return self._send(200, svc.preflight())

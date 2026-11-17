@@ -1,6 +1,7 @@
 import base64
 import json
 import urllib.error
+import os
 import urllib.request
 
 import pytest
@@ -123,3 +124,27 @@ def test_settings_round_trip(server):
     assert call(base, "GET", "/v1/settings")[1] == {}
     jpost(base, "/v1/settings", {"x": 1}) if False else call(base, "PUT", "/v1/settings", json.dumps({"autosave_minutes": 5}).encode())
     assert call(base, "GET", "/v1/settings")[1] == {"autosave_minutes": 5}
+
+
+def test_sample_character_runs_through_the_real_pipeline(server):
+    svc, base = server
+    st, r = jpost(base, "/v1/jobs?wait=1", {"type": "make_layers", "sample": True})
+    m = r["manifest"]
+    assert st == 200 and m["job"]["status"] == "ok" and len(m["parts"]) >= 15
+    assert m["source"]["width"] == 512 and m["source"]["height"] == 768
+    validate_manifest(m, base_dir=m["job"]["output_dir"])
+    assert os.path.isfile(os.path.join(os.path.dirname(__file__), "..", "voxy_service", "assets", "SAMPLE_LICENSE.txt"))
+
+
+def test_picture_urls_can_carry_the_token_but_other_routes_cannot(server):
+    svc, base = server
+    _, r = jpost(base, "/v1/jobs?wait=1", {"type": "make_layers", "sample": True})
+    part = r["manifest"]["parts"][0]["image"]
+    st, data = call(base, "GET", f"/v1/jobs/{r['job_id']}/files/{part}?token=testtoken", token=None, raw=True)
+    assert st == 200 and data[:4] == b"\x89PNG"
+    st, _ = call(base, "GET", f"/v1/jobs/{r['job_id']}/files/{part}?token=wrong", token=None, raw=True)
+    assert st == 401
+    st, _ = call(base, "GET", "/v1/preflight?token=testtoken", token=None)          # only picture files accept it
+    assert st == 401
+    st, _ = call(base, "GET", f"/v1/jobs/{r['job_id']}?token=testtoken", token=None)
+    assert st == 401

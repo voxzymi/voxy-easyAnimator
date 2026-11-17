@@ -146,3 +146,18 @@ TEST(supervisor_reports_a_service_that_will_not_start) {
   CHECK_CODE(sup.ensure(fake_service("--die"), current_pid(), 5000), "SERVICE_START_FAILED");
   CHECK_CODE(sup.ensure({"definitely-not-a-program-xyz"}, current_pid(), 3000), "SERVICE_START_FAILED");
 }
+
+TEST(bridge_can_start_the_service_without_using_the_ae_main_thread) {
+  Env e;
+  MainThreadQueue q;                                                   // nobody pumps: AE's main thread is not needed
+  ServiceSupervisor sup(e.data);
+  Bridge b(e.cmds, q, "", "t");
+  b.set_service_starter([&](const json&) { return sup.ensure(fake_service(), current_pid(), 15000); });
+  CHECK(b.start());
+  json r = cmd(b.port(), "t", {{"cmd", "ensure_service"}});
+  CHECK(r["ok"].get<bool>() && r["result"]["port"].get<int>() > 0 && r["result"]["token"] == "tok");
+  Bridge b2(e.cmds, q, "", "t");                                        // not configured: friendly error, not a crash
+  CHECK(b2.start());
+  json r2 = cmd(b2.port(), "t", {{"cmd", "ensure_service"}});
+  CHECK(!r2["ok"].get<bool>() && r2["error"]["code"] == "SERVICE_START_FAILED" && r2["error"]["what_to_do"].is_string());
+}

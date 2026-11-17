@@ -1,0 +1,9 @@
+sample_character.png
+
+An original character drawn by this project's own code (training/shared/procedural_art.py, fixed pose and colours,
+see tools/make_sample.py). No third-party artwork is used. The project owner may ship it with the product;
+it is released under CC0 1.0 (public domain dedication) unless the owner decides otherwise.
+
+NOTE FOR THE PROJECT OWNER: this is a placeholder for review. You can replace it with your own artwork by
+overwriting service/voxy_service/assets/sample_character.png (keep one flat-coloured character on a plain
+background) and updating this file with the licence.

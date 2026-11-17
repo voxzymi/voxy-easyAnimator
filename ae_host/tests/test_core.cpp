@@ -269,7 +269,9 @@ TEST(restore_removes_only_the_layers_from_the_last_add) {
   CHECK_EQ(e.ae.undo_groups.back(), std::string("Voxy: Restore"));
   CHECK_EQ(e.ae.mutations_outside_undo, 0);
   CHECK_EQ((int)r["removed_layers"] > 0, true);
+  CHECK(r["more"].get<bool>());                                        // the first add can still be restored
   json r2 = e.cmds.restore();                                          // second restore removes the first add
+  CHECK(!r2["more"].get<bool>());
   CHECK(e.ae.layer_named(e.comp, "Head") == 0);
   CHECK_EQ(e.ae.layers.size(), (size_t)2);                             // only the user's two layers remain
   CHECK_CODE(e.cmds.restore(), "NOTHING_TO_RESTORE");
@@ -345,6 +347,23 @@ TEST(apply_upscale_replaces_the_source_and_keeps_everything_else) {
   CHECK_NEAR(after.x, before.x, 1e-6);                                 // so the layer looks exactly the same
   CHECK_NEAR(after.y, before.y, 1e-6);
   CHECK_EQ(e.ae.items[e.ae.layers[e.user_layer].item].w, 800);
+  // the project links to a durable copy next to it, never to the temporary file the panel will delete
+  std::string linked = e.ae.items[e.ae.layers[e.user_layer].item].path;
+  CHECK(linked != up);
+  CHECK(linked.find("Voxy Upscaled") != std::string::npos);
+  CHECK(fs::path(linked).parent_path().parent_path() == fs::path(e.ae.path).parent_path());
+  fs::remove(up);                                                      // the panel discards the temporary file after Apply
+  CHECK(fs::exists(linked));
+  CHECK_EQ(r["file"].get<std::string>(), linked);
+}
+
+TEST(apply_upscale_for_an_unsaved_project_keeps_its_copy_in_the_app_folder) {
+  Env e;
+  e.ae.path.clear();
+  std::string up = path_str(e.tmp / "t.png");
+  write_file_atomic(up, std::string("\x89PNG\r\n\x1a\n", 8) + std::string(40, 'x'));
+  json r = e.cmds.apply_upscale({{"layer_id", e.user_layer}, {"image_path", up}});
+  CHECK(r["file"].get<std::string>().find("upscaled") != std::string::npos && fs::exists(r["file"].get<std::string>()));
 }
 
 TEST(apply_upscale_only_touches_the_named_layer) {

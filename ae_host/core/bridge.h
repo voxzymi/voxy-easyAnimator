@@ -45,6 +45,9 @@ class Bridge {
   int port() const { return port_; }
   const std::string& token() const { return token_; }
   void set_command_timeout(std::chrono::milliseconds t) { timeout_ = t; }
+  // "ensure_service" does not touch the AE project, so it runs on the bridge's own thread (starting the ML service can
+  // take seconds and must not block After Effects).
+  void set_service_starter(std::function<json(const json&)> fn) { service_starter_ = std::move(fn); }
 
  private:
   void accept_loop();
@@ -59,6 +62,7 @@ class Bridge {
   std::atomic<bool> running_{false};
   std::atomic<int> active_{0};
   std::chrono::milliseconds timeout_{60000};
+  std::function<json(const json&)> service_starter_;
 };
 
 }  // namespace voxy

@@ -68,7 +68,12 @@ class Ctx:
 
 
 # ------------------------------------------------------------------ helpers
+SAMPLE_PATH = os.path.join(os.path.dirname(__file__), "assets", "sample_character.png")
+
+
 def _request_image(req: Dict[str, Any], key: str = "image") -> np.ndarray:
+    if key == "image" and req.get("sample"):          # the built-in sample character (original artwork, CC0)
+        return load_image(SAMPLE_PATH)
     if req.get(f"{key}_path"):
         return load_image(req[f"{key}_path"])
     if req.get(f"{key}_b64"):
@@ -377,6 +382,10 @@ def upscale(ctx: Ctx, req: Dict[str, Any]) -> Dict[str, Any]:
     """Upscale one exported frame (the selected layer's). The result stays in a temporary file."""
     m = new_manifest(ctx.job_id, "upscale", output_dir=ctx.job_dir)
     up = ctx.upscaler or Upscaler(ctx.cfg["upscale"], ctx.app_dir)
+    if (req.get("options") or {}).get("low_memory"):             # the panel's "Low memory mode": start with small tiles
+        low = dict(up.cfg)
+        low["tile_sequence"] = [t for t in low["tile_sequence"] if 0 < t <= 128] or [128, 64, 32]
+        up = Upscaler(low, up.app_dir)
     try:
         inp = req.get("image_path")
         if not inp:
