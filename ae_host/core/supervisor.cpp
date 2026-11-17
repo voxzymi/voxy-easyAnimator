@@ -50,7 +50,9 @@ json ServiceSupervisor::ensure(const std::vector<std::string>& command, int pare
 #ifdef _WIN32
   std::wstring cmdline;
   for (auto& a : args) {
-    std::wstring w(a.begin(), a.end());
+    int n = MultiByteToWideChar(CP_UTF8, 0, a.c_str(), -1, nullptr, 0);      // UTF-8 -> UTF-16: names with accents must survive
+    std::wstring w(n > 0 ? n - 1 : 0, L'\0');
+    if (n > 1) MultiByteToWideChar(CP_UTF8, 0, a.c_str(), -1, w.data(), n);
     cmdline += L"\"" + w + L"\" ";
   }
   STARTUPINFOW si{};

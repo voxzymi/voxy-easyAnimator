@@ -14,7 +14,7 @@
       upscale: 'Upscale 2x', applyInProject: 'Apply in Project', discard: 'Discard', restore: 'Restore',
       combine: 'Combine', saveProject: 'Save Project', cutHair: 'Cut hair into subdivisions', testSetup: 'Test setup',
       help: 'Help', fullScreen: 'Full screen', normalSize: 'Normal size', openLog: 'Open log file', tryAgain: 'Try again',
-      useSample: 'Try the sample character', closeWelcome: 'Got it', refresh: 'Refresh picture', updatePreview: 'Update preview',
+      useSample: 'Try the sample character', closeWelcome: 'Got it', refresh: 'Refresh picture',
       openBackup: 'Open the backup', noThanks: 'No thanks', openHelp: 'Open help',
     },
     labels: {

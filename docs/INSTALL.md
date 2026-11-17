@@ -89,7 +89,7 @@ The panel lists the parts under groups: Head, Face, Hair, Torso, Arms, Legs, and
 
 If a part has nothing in it, Voxy leaves it out and tells you.
 
-**Background Removal.** Turn this on before you press Make Layers. Voxy then also removes the background and redraws it as a separate layer.
+**Background Removal.** Turn this on before you press Make Layers. Voxy then also removes the background and redraws it as a separate layer. Settings like this apply the next time you press Make Layers. The preview always shows your layer's picture as it is now.
 
 ![Step 6: Make Layers](images/step-06.png)
 

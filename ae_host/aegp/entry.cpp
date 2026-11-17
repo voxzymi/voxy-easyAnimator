@@ -77,6 +77,7 @@ extern "C" DllExport A_Err EntryPointFunc(struct SPBasicSuite* pica_basicP, A_lo
     h->journal = std::make_unique<Journal>(dir / "journal.json");
     h->autosave = std::make_unique<AutosaveManager>(dir);
     h->commands = std::make_unique<Commands>(*h->api, *h->journal, *h->autosave, dir);
+    h->commands->set_allowed_roots({dir});                 // the bridge may only touch Voxy's own folder
     h->supervisor = std::make_unique<ServiceSupervisor>(dir);
     h->bridge = std::make_unique<Bridge>(*h->commands, h->queue, dir / "bridge.json");
     ServiceSupervisor* sup = h->supervisor.get();

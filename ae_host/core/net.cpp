@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include "net.h"
 
 #include <cstring>

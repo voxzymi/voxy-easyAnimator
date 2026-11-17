@@ -417,3 +417,15 @@ TEST(unknown_commands_and_bad_arguments_are_friendly) {
   CHECK(!r["ok"].get<bool>() && r["error"]["code"] == "BAD_COMMAND");
   CHECK(e.cmds.dispatch("ping", {})["ok"].get<bool>());
 }
+
+TEST(the_bridge_commands_only_touch_files_inside_voxys_folder_when_limited) {
+  Env e;
+  e.cmds.set_allowed_roots({e.data});
+  CHECK_CODE(e.cmds.export_frame({{"path", path_str(e.tmp / "elsewhere.png")}}), "BAD_COMMAND");
+  CHECK_CODE(e.cmds.export_frame({{"path", path_str(e.data / ".." / "elsewhere.png")}}), "BAD_COMMAND");   // no escaping with ..
+  CHECK(e.cmds.export_frame({{"path", path_str(e.data / "tmp" / "panel" / "ok.png")}})["path"].is_string());
+  write_file_atomic(path_str(e.tmp / "up.png"), "x");
+  CHECK_CODE(e.cmds.apply_upscale({{"layer_id", e.user_layer}, {"image_path", path_str(e.tmp / "up.png")}}), "BAD_COMMAND");
+  CHECK_CODE(e.add(e.make, e.make_dir, {"head"}), "BAD_COMMAND");                   // the fixture lives outside the data folder
+  CHECK(e.ae.undo_groups.empty());                                                  // refused before anything changed
+}

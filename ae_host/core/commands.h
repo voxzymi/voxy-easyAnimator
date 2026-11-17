@@ -27,6 +27,9 @@ class Commands {
   json recovery_open(const json& req);          // {backup}: only backups Voxy itself wrote
   json backups(const json& req);
 
+  // Only touch files inside these folders (Voxy's data folder in the real plug-in). Empty = no limit (tests).
+  void set_allowed_roots(std::vector<fs::path> roots) { roots_ = std::move(roots); }
+
   // Entry point used by the bridge. Returns {ok:true,result} or {ok:false,error}.
   json dispatch(const std::string& cmd, const json& args);
 
@@ -35,6 +38,8 @@ class Commands {
   Journal& journal_;
   AutosaveManager& autosave_;
   fs::path data_dir_;
+  std::vector<fs::path> roots_;
+  void require_allowed(const std::string& path) const;
 };
 
 }  // namespace voxy

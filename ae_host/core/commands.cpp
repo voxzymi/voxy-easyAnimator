@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include "commands.h"
 
 #include <algorithm>
@@ -18,6 +19,18 @@ static json selection_json(const Selection& s) {
 
 json Commands::selection() { return selection_json(api_.get_selection()); }
 
+void Commands::require_allowed(const std::string& path) const {
+  if (roots_.empty()) return;
+  std::error_code ec;
+  fs::path p = fs::weakly_canonical(fs::path(path), ec);
+  for (auto& r : roots_) {
+    fs::path root = fs::weakly_canonical(r, ec);
+    auto rel = p.lexically_relative(root);
+    if (!rel.empty() && *rel.begin() != "..") return;
+  }
+  throw make_error("BAD_COMMAND", "path outside Voxy's folder");
+}
+
 json Commands::export_frame(const json& args) {
   Selection s = api_.get_selection();
   if (!s.has_project) throw make_error("NO_PROJECT");
@@ -29,6 +42,7 @@ json Commands::export_frame(const json& args) {
     layer = s.layer_id;
   }
   const std::string path = args.at("path");
+  require_allowed(path);
   const double t = args.value("time", s.time);
   try {
     api_.export_layer_frame_png(layer, t, path);
@@ -55,6 +69,9 @@ json Commands::add_to_project(const json& req) {
   std::vector<std::string> visible = req.at("visible_ids").get<std::vector<std::string>>();
   Options opt = Options::from_json(req.value("options", json::object()));
   AddPlan plan = build_add_plan(manifest, req.at("output_dir"), visible, opt);   // validates everything before we touch AE
+  for (auto& g : plan.groups)
+    for (auto& p : g.parts) require_allowed(p.image_path);
+  if (plan.has_background) require_allowed(plan.background.image_path);
 
   AddRecord rec;
   rec.id = random_token(9);
@@ -214,6 +231,7 @@ json Commands::restore() {
 json Commands::apply_upscale(const json& req) {
   int64_t layer = req.at("layer_id");
   const std::string path = req.at("image_path");
+  require_allowed(path);
   double factor = req.value("factor", 2.0);
   if (!api_.layer_exists(layer)) throw make_error("NO_LAYER");
   if (api_.layer_source_kind(layer) != "still") throw make_error("NOT_A_PICTURE_LAYER");
