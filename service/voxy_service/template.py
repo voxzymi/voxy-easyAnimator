@@ -206,7 +206,8 @@ class TemplateRender:
 
 
 def render_template(L: Layout, hw: Tuple[int, int], height_px: float, origin: Point,
-                    z_order: Optional[Dict[str, int]] = None) -> TemplateRender:
+                    z_order: Optional[Dict[str, int]] = None,
+                    override_full: Optional[Dict[str, np.ndarray]] = None) -> TemplateRender:
     """Rasterise the layout. ``origin`` is the pixel position of unit (0, 0). ``z_order`` overrides
     the default stacking (the dataset generator uses this to vary which parts are in front)."""
     shapes, kp = build_shapes(L)
@@ -223,6 +224,8 @@ def render_template(L: Layout, hw: Tuple[int, int], height_px: float, origin: Po
             if s.cls == "hair" and not s.subtract:
                 front |= _raster(s, hw, height_px, ox, oy)
         full["hair"] = (back_hair_masks[0] & ~full["head"]) | front
+    if override_full:          # e.g. hair assembled from reference pieces instead of the template hair
+        full.update(override_full)
     labels = np.zeros(hw, np.uint8)
     z = dict(S.Z_ORDER)
     if z_order:

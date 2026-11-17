@@ -99,7 +99,7 @@ def _swap_pairs(names: List[str]) -> Dict[str, str]:
 
 
 # Mirroring the image left-right swaps these names.
-FLIP_CLASS: Dict[str, str] = _swap_pairs(CLASS_NAMES)
+FLIP_CLASS: Dict[str, str] = _swap_pairs(CLASS_NAMES + [h for h, _, _ in HIDDEN_PARTS])
 FLIP_KEYPOINT: Dict[str, str] = _swap_pairs(KEYPOINTS)
 FLIP_CLASS_INDEX: List[int] = [CLASS_INDEX[FLIP_CLASS[n]] for n in CLASS_NAMES]
 FLIP_KEYPOINT_INDEX: List[int] = [KEYPOINT_INDEX[FLIP_KEYPOINT[n]] for n in KEYPOINTS]

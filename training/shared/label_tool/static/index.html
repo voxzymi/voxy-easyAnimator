@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Voxy label tool</title>
+<style>
+:root{--bg:#1d1f24;--panel:#262932;--ink:#e8eaf0;--mute:#9aa1b2;--acc:#5aa9ff;--ok:#4cc38a}
+@media (prefers-color-scheme: light){:root{--bg:#f2f3f6;--panel:#fff;--ink:#1c1e24;--mute:#5d6577;--acc:#1b6fd8;--ok:#1e8f5a}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,sans-serif;display:flex;height:100vh}
+#side{width:310px;background:var(--panel);padding:12px;overflow:auto;flex:none}
+#main{flex:1;display:flex;align-items:center;justify-content:center;overflow:auto;padding:12px}
+#wrap{position:relative;touch-action:none}canvas{position:absolute;left:0;top:0;image-rendering:pixelated}
+h1{font-size:16px;margin:0 0 8px}h2{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);margin:14px 0 6px}
+button,select,input{font:inherit;color:var(--ink);background:transparent;border:1px solid var(--mute);border-radius:6px;padding:4px 8px}
+button{cursor:pointer}button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.row{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0}.cls{display:flex;align-items:center;gap:6px;padding:2px 4px;border-radius:4px;cursor:pointer}
+.cls.sel{outline:2px solid var(--acc)}.sw{width:14px;height:14px;border-radius:3px;border:1px solid #0006}.grp{color:var(--mute);font-size:11px;margin-left:auto}
+#status{color:var(--ok);min-height:1.4em}#imgs{max-height:140px;overflow:auto;border:1px solid var(--mute);border-radius:6px}
+#imgs div{padding:2px 6px;cursor:pointer}#imgs div.cur{background:var(--acc);color:#fff}.done::after{content:" ✓";color:var(--ok)}
+</style></head><body>
+<div id="side">
+  <h1>Voxy label tool</h1>
+  <div class="row"><button id="mGeneral" class="on">General model</button><button id="mHair">Hair model</button></div>
+  <div style="color:var(--mute);font-size:12px" id="modeHelp"></div>
+  <h2>Images</h2><div id="imgs"></div>
+  <div class="row"><button id="prev">◀ Prev</button><button id="next">Next ▶</button><button id="save" class="on">Save (S)</button></div>
+  <div id="status"></div>
+  <h2>Tool</h2>
+  <div class="row"><button id="tBrush" class="on">Brush (B)</button><button id="tErase">Erase (E)</button><button id="tPoint">Points (P)</button></div>
+  <div class="row"><label>Size <input id="size" type="range" min="1" max="60" value="12"></label><label>Opacity <input id="alpha" type="range" min="10" max="90" value="55"></label></div>
+  <h2 id="listTitle">Classes</h2><div id="list"></div>
+</div>
+<div id="main"><div id="wrap"><canvas id="img"></canvas><canvas id="lab"></canvas><canvas id="pts"></canvas></div></div>
+<script>
+const $=id=>document.getElementById(id);
+let schema,images=[],cur=-1,mode='general',tool='brush',cls=1,sel=0,W=0,H=0,labels,hairMask,points=[],dirty=false,drag=-1,imgEl=new Image();
+const pal=i=>{if(!i)return[0,0,0,0];const h=(i*47)%360,s=.7,l=.55,a=s*Math.min(l,1-l),f=n=>{const k=(n+h/30)%12;return Math.round(255*(l-a*Math.max(-1,Math.min(k-3,9-k,1))))};return[f(0),f(8),f(4),255]};
+function b64(a){let s='';const n=0x8000;for(let i=0;i<a.length;i+=n)s+=String.fromCharCode.apply(null,a.subarray(i,i+n));return btoa(s)}
+function unb64(s){const b=atob(s),a=new Uint8Array(b.length);for(let i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a}
+async function init(){schema=await (await fetch('/api/schema')).json();await refreshList();buildList();setMode('general');if(images.length)openImage(0)}
+async function refreshList(){images=await (await fetch('/api/images')).json();$('imgs').innerHTML='';images.forEach((im,i)=>{const d=document.createElement('div');d.textContent=im.name;if(im[mode])d.className='done';if(i===cur)d.classList.add('cur');d.onclick=()=>openImage(i);$('imgs').appendChild(d)})}
+function buildList(){const L=$('list');L.innerHTML='';if(mode==='general'){schema.classes.forEach((c,i)=>{if(!i)return;const d=document.createElement('div');d.className='cls'+(i===cls?' sel':'');const [r,g,b]=pal(i);d.innerHTML=`<span class="sw" style="background:rgb(${r},${g},${b})"></span>${c}<span class="grp">${schema.groups[c]}</span>`;d.onclick=()=>{cls=i;tool='brush';setTool();buildList()};L.appendChild(d)});$('listTitle').textContent='Classes (group shown on the right)'}
+ else{for(let i=1;i<=schema.max_subdivisions;i++){const d=document.createElement('div');d.className='cls'+(i===sel||(!sel&&i===1)?' sel':'');const [r,g,b]=pal(i);d.innerHTML=`<span class="sw" style="background:rgb(${r},${g},${b})"></span>Section ${i}`;d.onclick=()=>{sel=i;cls=i;tool='brush';setTool();buildList()};L.appendChild(d)}$('listTitle').textContent='Hair sections'}}
+function setMode(m){mode=m;$('mGeneral').className=m==='general'?'on':'';$('mHair').className=m==='hair'?'on':'';cls=1;sel=1;
+ $('modeHelp').textContent=m==='general'?'Paint every part. Hair is ONE class (front and back together). Place the key points with the Points tool.':'Paint the strand sections inside the hair mask, and click the points where strands start (roots). This label set is separate from the general one.';
+ buildList();if(cur>=0)openImage(cur)}
+function setTool(){['Brush','Erase','Point'].forEach(t=>$('t'+t).className=tool===t.toLowerCase()?'on':'')}
+async function openImage(i){if(dirty&&!confirm('Discard unsaved changes?'))return;cur=i;const name=images[i].name;
+ await new Promise(r=>{imgEl.onload=r;imgEl.src='/api/image/'+encodeURIComponent(name)});W=imgEl.naturalWidth;H=imgEl.naturalHeight;
+ const k=Math.min(1,(innerWidth-360)/W,(innerHeight-30)/H);$('wrap').style.width=W*k+'px';$('wrap').style.height=H*k+'px';
+ for(const id of['img','lab','pts']){const c=$(id);c.width=W;c.height=H;c.style.width=W*k+'px';c.style.height=H*k+'px'}
+ $('img').getContext('2d').drawImage(imgEl,0,0);
+ const st=await (await fetch('/api/state/'+encodeURIComponent(name)+'?kind='+mode)).json();
+ labels=st.labels?unb64(st.labels):new Uint8Array(W*H);points=st.points||[];hairMask=null;
+ if(mode==='hair'){if(st.hair_mask)hairMask=unb64(st.hair_mask);else{const g=await (await fetch('/api/state/'+encodeURIComponent(name)+'?kind=general')).json();hairMask=new Uint8Array(W*H);if(g.labels){const a=unb64(g.labels),h=schema.classes.indexOf('hair');for(let j=0;j<a.length;j++)hairMask[j]=a[j]===h?1:0}}
+  points=(points||[]).map(p=>Array.isArray(p)?{x:p[0],y:p[1]}:p)}
+ else points=(points||[]);
+ dirty=false;$('status').textContent=st.saved?'Loaded saved labels.':st.prelabel?'Loaded the model\'s pre-labels: correct them, then save.':'No labels yet.';draw();refreshList()}
+function draw(){const c=$('lab').getContext('2d'),im=c.createImageData(W,H),A=+$('alpha').value/100*255;
+ for(let i=0;i<labels.length;i++){const v=labels[i];if(v){const p=pal(v);im.data[4*i]=p[0];im.data[4*i+1]=p[1];im.data[4*i+2]=p[2];im.data[4*i+3]=A}else if(mode==='hair'&&hairMask&&hairMask[i]){im.data[4*i]=255;im.data[4*i+1]=255;im.data[4*i+2]=255;im.data[4*i+3]=70}}
+ c.putImageData(im,0,0);const p=$('pts').getContext('2d');p.clearRect(0,0,W,H);p.lineWidth=2;p.font='bold '+Math.max(10,W/60)+'px sans-serif';
+ points.forEach((q,i)=>{p.strokeStyle='#fff';p.fillStyle='#e22';p.beginPath();p.arc(q.x,q.y,Math.max(3,W/150),0,7);p.fill();p.stroke();if(mode==='general'){p.fillStyle='#fff';p.fillText(q.name,q.x+6,q.y-6)}})}
+function pos(e){const r=$('pts').getBoundingClientRect();return{x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*H/r.height}}
+function stamp(x,y,val){const r=+$('size').value/2*(W/ $('pts').getBoundingClientRect().width),r2=r*r;
+ for(let j=Math.max(0,Math.floor(y-r));j<=Math.min(H-1,y+r);j++)for(let i=Math.max(0,Math.floor(x-r));i<=Math.min(W-1,x+r);i++){if((i-x)**2+(j-y)**2<=r2){const k=j*W+i;if(mode==='hair'&&val&&!hairMask[k])continue;labels[k]=val}}}
+let painting=false,last=null;
+function nextKeypoint(){for(const n of schema.keypoints)if(!points.find(p=>p.name===n))return n;return null}
+$('pts').onpointerdown=e=>{const p=pos(e);$('pts').setPointerCapture(e.pointerId);
+ if(tool==='point'){const near=points.findIndex(q=>Math.hypot(q.x-p.x,q.y-p.y)<Math.max(8,W/60));if(near>=0){drag=near;return}
+  if(mode==='general'){const n=nextKeypoint();if(!n){$('status').textContent='All 15 key points are placed. Drag to adjust.';return}points.push({name:n,x:p.x,y:p.y,visible:true});$('status').textContent='Placed '+n+'. Next: '+(nextKeypoint()||'done')}
+  else points.push({x:p.x,y:p.y});dirty=true;draw();return}
+ painting=true;last=p;stamp(p.x,p.y,tool==='erase'?0:cls);dirty=true;draw()};
+$('pts').onpointermove=e=>{const p=pos(e);if(drag>=0){points[drag].x=p.x;points[drag].y=p.y;dirty=true;draw();return}
+ if(!painting)return;const n=Math.ceil(Math.hypot(p.x-last.x,p.y-last.y)/2)||1;for(let s=1;s<=n;s++)stamp(last.x+(p.x-last.x)*s/n,last.y+(p.y-last.y)*s/n,tool==='erase'?0:cls);last=p;draw()};
+$('pts').onpointerup=()=>{painting=false;drag=-1};
+$('pts').oncontextmenu=e=>{e.preventDefault();const p=pos(e),i=points.findIndex(q=>Math.hypot(q.x-p.x,q.y-p.y)<Math.max(8,W/60));if(i>=0){points.splice(i,1);dirty=true;draw()}};
+async function save(){if(cur<0)return;const body={width:W,height:H,labels:b64(labels),points};if(mode==='hair')body.hair_mask=b64(hairMask);
+ const r=await fetch('/api/save/'+encodeURIComponent(images[cur].name)+'?kind='+mode,{method:'POST',body:JSON.stringify(body)});const j=await r.json();
+ $('status').textContent=r.ok?'Saved ✓':'Not saved: '+j.error;if(r.ok){dirty=false;refreshList()}}
+$('save').onclick=save;$('prev').onclick=()=>cur>0&&openImage(cur-1);$('next').onclick=()=>cur<images.length-1&&openImage(cur+1);
+$('tBrush').onclick=()=>{tool='brush';setTool()};$('tErase').onclick=()=>{tool='erase';setTool()};$('tPoint').onclick=()=>{tool='point';setTool()};
+$('mGeneral').onclick=()=>setMode('general');$('mHair').onclick=()=>setMode('hair');$('alpha').oninput=draw;
+addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;const k=e.key.toLowerCase();if(k==='s'&&!e.ctrlKey){save()}else if(k==='b'){tool='brush';setTool()}else if(k==='e'){tool='erase';setTool()}else if(k==='p'){tool='point';setTool()}});
+init();
+</script></body></html>
