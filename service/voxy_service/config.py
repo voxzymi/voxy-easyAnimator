@@ -18,7 +18,7 @@ DEFAULTS: Dict[str, Any] = {
     },
     "timeouts_s": {"load": 30, "matting": 90, "general": 180, "hair": 180, "inpaint": 240,
                    "postprocess": 60, "upscale": 900},
-    "device": {"prefer": "cuda", "cpu_fallback": True},
+    "device": {"prefer": "cuda", "cpu_fallback": True, "gpu_mem_limit_mb": 4096},   # per model session
     "models": {
         "root": "models",
         "general": {"backend": "stub", "version": "0.1.0"},

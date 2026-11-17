@@ -24,6 +24,7 @@ class ModelRegistry:
         self.allow_stub = bool(cfg["service"]["allow_stub_models"])
         self.prefer = cfg["device"]["prefer"]
         self.cpu_fallback = bool(cfg["device"]["cpu_fallback"])
+        self.mem_mb = int(cfg["device"].get("gpu_mem_limit_mb", 0))
         self.warnings: Dict[str, str] = {}
 
     def model_dir(self, name: str) -> str:
@@ -44,7 +45,7 @@ class ModelRegistry:
                     self._cache["general"] = StubGeneralModel(self.cfg["models"]["general"]["version"])
                 else:
                     from .onnx_models import OnnxGeneralModel
-                    m = OnnxGeneralModel(self.model_dir("general"), self.prefer, self.cpu_fallback)
+                    m = OnnxGeneralModel(self.model_dir("general"), self.prefer, self.cpu_fallback, self.mem_mb)
                     if m.warning:
                         self.warnings["general"] = m.warning
                     self._cache["general"] = m
@@ -57,7 +58,7 @@ class ModelRegistry:
                     self._cache["hair"] = StubHairModel(self.cfg["models"]["hair"]["version"])
                 else:
                     from .onnx_models import OnnxHairModel
-                    m = OnnxHairModel(self.model_dir("hair"), self.prefer, self.cpu_fallback)
+                    m = OnnxHairModel(self.model_dir("hair"), self.prefer, self.cpu_fallback, self.mem_mb)
                     if m.warning:
                         self.warnings["hair"] = m.warning
                     self._cache["hair"] = m

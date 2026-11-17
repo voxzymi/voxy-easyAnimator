@@ -32,8 +32,10 @@ def available_providers() -> list:
         return []
 
 
-def make_session(path: str, *, prefer: str = "cuda", cpu_fallback: bool = True) -> Tuple[Any, str, Optional[str]]:
-    """Open an ONNX session. Returns (session, device, warning_code_or_None)."""
+def make_session(path: str, *, prefer: str = "cuda", cpu_fallback: bool = True,
+                 gpu_mem_limit_mb: int = 0) -> Tuple[Any, str, Optional[str]]:
+    """Open an ONNX session. Returns (session, device, warning_code_or_None).
+    ``gpu_mem_limit_mb`` caps this session's CUDA memory arena so two models in one job stay inside 12 GB."""
     ort = _ort()
     so = ort.SessionOptions()
     so.log_severity_level = 3
@@ -41,7 +43,10 @@ def make_session(path: str, *, prefer: str = "cuda", cpu_fallback: bool = True) 
     warning = None
     if prefer == "cuda" and "CUDAExecutionProvider" in avail:
         try:
-            sess = ort.InferenceSession(path, so, providers=["CUDAExecutionProvider", "CPUExecutionProvider"])
+            cuda_opts: Dict[str, Any] = {"arena_extend_strategy": "kSameAsRequested"}
+            if gpu_mem_limit_mb > 0:
+                cuda_opts["gpu_mem_limit"] = int(gpu_mem_limit_mb) * 1024 * 1024
+            sess = ort.InferenceSession(path, so, providers=[("CUDAExecutionProvider", cuda_opts), "CPUExecutionProvider"])
             if sess.get_providers()[0] == "CUDAExecutionProvider":
                 return sess, "cuda", None
             warning = "GPU_NOT_USED"
@@ -64,13 +69,14 @@ def read_meta(model_dir: str) -> Dict[str, Any]:
 
 
 class _OnnxBase:
-    def __init__(self, model_dir: str, name: str, code_missing: str, prefer: str, cpu_fallback: bool):
+    def __init__(self, model_dir: str, name: str, code_missing: str, prefer: str, cpu_fallback: bool, gpu_mem_limit_mb: int = 0):
         self.dir = model_dir
         self.meta = read_meta(model_dir) if os.path.isdir(model_dir) else {}
         path = os.path.join(model_dir, "model.onnx")
         if not os.path.isfile(path):
             raise VoxyError(code_missing, f"missing {path}")
-        self.sess, device, self.warning = make_session(path, prefer=prefer, cpu_fallback=cpu_fallback)
+        self.sess, device, self.warning = make_session(path, prefer=prefer, cpu_fallback=cpu_fallback,
+                                                       gpu_mem_limit_mb=gpu_mem_limit_mb)
         self.info = ModelInfo(name, str(self.meta.get("version", os.path.basename(model_dir))), "onnx", device)
         self.size = int(self.meta.get("input_size", 512))
         self._input = self.sess.get_inputs()[0].name
@@ -98,8 +104,8 @@ class OnnxGeneralModel(_OnnxBase):
     """Outputs: seg [1,C,S,S] logits, kpt [1,K,S/4,S/4] heat-maps, amodal [1,A,S,S] logits,
     completion [1,3,S,S] in [0,1]."""
 
-    def __init__(self, model_dir: str, prefer: str = "cuda", cpu_fallback: bool = True):
-        super().__init__(model_dir, "general", "GENERAL_MODEL_MISSING", prefer, cpu_fallback)
+    def __init__(self, model_dir: str, prefer: str = "cuda", cpu_fallback: bool = True, gpu_mem_limit_mb: int = 0):
+        super().__init__(model_dir, "general", "GENERAL_MODEL_MISSING", prefer, cpu_fallback, gpu_mem_limit_mb)
         if list(self.meta.get("classes", S.CLASS_NAMES)) != S.CLASS_NAMES:
             raise VoxyError("GENERAL_MODEL_FAILED", "model class list does not match this app version")
 
@@ -145,8 +151,8 @@ class OnnxGeneralModel(_OnnxBase):
 class OnnxHairModel(_OnnxBase):
     """Outputs: flow [1,2,S,S] (strand direction, normalised here) and roots [1,1,S,S] logits."""
 
-    def __init__(self, model_dir: str, prefer: str = "cuda", cpu_fallback: bool = True):
-        super().__init__(model_dir, "hair", "HAIR_MODEL_MISSING", prefer, cpu_fallback)
+    def __init__(self, model_dir: str, prefer: str = "cuda", cpu_fallback: bool = True, gpu_mem_limit_mb: int = 0):
+        super().__init__(model_dir, "hair", "HAIR_MODEL_MISSING", prefer, cpu_fallback, gpu_mem_limit_mb)
 
     def predict(self, rgb: np.ndarray, hair_mask: np.ndarray, cancel: CancelToken) -> HairOutput:
         h, w = hair_mask.shape

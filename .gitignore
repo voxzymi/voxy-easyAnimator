@@ -18,3 +18,5 @@ data/raw/**/*.zip
 # bundled third-party binaries are fetched by installer/fetch_third_party.ps1
 installer/third_party_cache/
 ae_host/third_party/ae_sdk/
+ae_host/build/
+out/

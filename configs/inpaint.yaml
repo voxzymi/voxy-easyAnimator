@@ -1,0 +1,21 @@
+# Large-mask inpainting, fine-tuned on the generated occlusion pairs. Loss: L1 + perceptual.
+model: {base: 48, input_size: 256}
+train:
+  epochs: 30
+  batch_size: 8
+  accum_steps: 2
+  lr: 2.0e-4
+  weight_decay: 0.0
+  amp: true
+  workers: 4
+  freeze_encoder: false  # set true to save memory when fine-tuning
+loss:
+  l1_hole: 6.0
+  l1_all: 1.0
+  perceptual: 0.1
+  vgg_weights: models/pretrained/vgg16-397923af.pth
+data:
+  synthetic: [data/synthetic/train]
+  val: [data/synthetic/val]
+output: {checkpoints: out/inpaint}
+export: {version: "0.1.0"}

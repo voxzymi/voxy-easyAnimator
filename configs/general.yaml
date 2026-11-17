@@ -1,0 +1,20 @@
+# General dissection model: part segmentation (hair = one class), key points, hidden-part extents, completion.
+model: {base: 32, depth: 5, input_size: 512}
+train:
+  epochs: 40
+  batch_size: 4          # 4 x 512x512 in FP16 fits in 12 GB (see docs/memory.md)
+  accum_steps: 4         # effective batch 16
+  lr: 2.0e-4
+  weight_decay: 1.0e-4
+  amp: true              # FP16 autocast + GradScaler (CUDA only)
+  workers: 4
+  grad_clip: 1.0
+  seed: 0
+loss: {seg_ce: 1.0, seg_dice: 1.0, kpt: 50.0, amodal: 0.5, completion: 1.0}
+data:
+  synthetic: [data/synthetic/train]
+  val: [data/synthetic/val]
+  labeled: data/labeled/general      # corrected real images (added after each bootstrap round)
+  images: data/raw
+output: {checkpoints: out/general}
+export: {version: "0.1.0"}
