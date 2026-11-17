@@ -205,8 +205,10 @@ class TemplateRender:
     z_order: Dict[str, int]
 
 
-def render_template(L: Layout, hw: Tuple[int, int], height_px: float, origin: Point) -> TemplateRender:
-    """Rasterise the layout. ``origin`` is the pixel position of unit (0, 0)."""
+def render_template(L: Layout, hw: Tuple[int, int], height_px: float, origin: Point,
+                    z_order: Optional[Dict[str, int]] = None) -> TemplateRender:
+    """Rasterise the layout. ``origin`` is the pixel position of unit (0, 0). ``z_order`` overrides
+    the default stacking (the dataset generator uses this to vary which parts are in front)."""
     shapes, kp = build_shapes(L)
     ox, oy = origin
     full: Dict[str, np.ndarray] = {}
@@ -223,6 +225,8 @@ def render_template(L: Layout, hw: Tuple[int, int], height_px: float, origin: Po
         full["hair"] = (back_hair_masks[0] & ~full["head"]) | front
     labels = np.zeros(hw, np.uint8)
     z = dict(S.Z_ORDER)
+    if z_order:
+        z.update(z_order)
     for cls in sorted(full, key=lambda c: z[c]):
         labels[full[cls]] = S.CLASS_INDEX[cls]
     kp_px = {k: (ox + v[0] * height_px, oy + v[1] * height_px) for k, v in kp.items()}

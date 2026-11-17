@@ -128,6 +128,7 @@ def make_layers(ctx: Ctx, req: Dict[str, Any]) -> Dict[str, Any]:
         m["source"] = {"width": w, "height": h, "sha256": sha256_of(rgba)}
         save_png(os.path.join(ctx.job_dir, "source.png"), rgba)
         work = rgba
+        matte = None
 
         if opts.get("background_removal"):
             try:
@@ -135,6 +136,7 @@ def make_layers(ctx: Ctx, req: Dict[str, Any]) -> Dict[str, Any]:
                 alpha = ctx.step("matting", lambda: matter.alpha(rgba, ctx.cancel))
                 work = rgba.copy()
                 work[:, :, 3] = np.clip(alpha * 255.0, 0, 255).astype(np.uint8)
+                matte = alpha > 0.5
                 m["models"]["matting"] = {"name": "matting", "version": getattr(matter, "version", "0"),
                                           "backend": matter.backend, "device": matter.device}
             except Cancelled:
@@ -172,7 +174,7 @@ def make_layers(ctx: Ctx, req: Dict[str, Any]) -> Dict[str, Any]:
 
         if opts.get("background_removal"):
             try:
-                char = np.zeros((h, w), bool)
+                char = matte.copy() if matte is not None else np.zeros((h, w), bool)   # silhouette + parts
                 for cls, mk in masks.items():
                     if cls in S.CLASS_INDEX:
                         char |= mk

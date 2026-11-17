@@ -57,8 +57,10 @@ class FlatMatter:
         if (rgba[:, :, 3] < 250).any():           # already transparent: keep the given alpha
             return rgba[:, :, 3].astype(np.float32) / 255.0
         a = key_background(rgba, self.tolerance)
-        if float(a.mean()) < 0.01 or float(a.mean()) > 0.995:
-            raise VoxyError("MATTING_FAILED", "background key found nothing or everything", stage="matting")
+        border = np.concatenate([a[0, :], a[-1, :], a[:, 0], a[:, -1]])
+        if float((border < 0.5).mean()) < 0.5 or float(a.mean()) < 0.01:
+            # a plain background touches most of the picture's edge; if it does not, there is nothing to key
+            raise VoxyError("MATTING_FAILED", "no plain background found around the picture", stage="matting")
         return a
 
 

@@ -158,6 +158,7 @@ def _run(cmd: List[str], timeout_s: float, cancel: CancelToken) -> Tuple[int, st
             raise VoxyError("UPSCALER_TIMEOUT", f"upscale exceeded {timeout_s}s", stage="upscale")
         time.sleep(0.05)
     t.join(2)
+    cancel.check("upscale")        # the cancel hook may have killed the tool: that is a cancel, not a failure
     return p.returncode, "".join(out_chunks)[-4000:]
 
 
