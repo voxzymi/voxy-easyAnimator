@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Voxy EasyAnimator panel (CEP HTML panel). Two windows: the dockable panel, and a floating "full screen" window.
+  DRAFT: the After Effects version range in <HostList> is a placeholder. Confirm the supported versions
+  (see docs/decisions-needed.md) before release.
+-->
+<ExtensionManifest Version="7.0" ExtensionBundleId="com.voxy.easyanimator" ExtensionBundleVersion="0.1.0" ExtensionBundleName="Voxy EasyAnimator"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ExtensionList>
+    <Extension Id="com.voxy.easyanimator.panel" Version="0.1.0"/>
+    <Extension Id="com.voxy.easyanimator.full" Version="0.1.0"/>
+  </ExtensionList>
+  <ExecutionEnvironment>
+    <HostList>
+      <Host Name="AEFT" Version="[22.0,99.9]"/>
+    </HostList>
+    <LocaleList><Locale Code="All"/></LocaleList>
+    <RequiredRuntimeList><RequiredRuntime Name="CSXS" Version="9.0"/></RequiredRuntimeList>
+  </ExecutionEnvironment>
+  <DispatchInfoList>
+    <Extension Id="com.voxy.easyanimator.panel">
+      <DispatchInfo>
+        <Resources>
+          <MainPath>./index.html</MainPath>
+          <CEFCommandLine>
+            <Parameter>--enable-nodejs</Parameter>
+            <Parameter>--mixed-context</Parameter>
+          </CEFCommandLine>
+        </Resources>
+        <Lifecycle><AutoVisible>true</AutoVisible></Lifecycle>
+        <UI>
+          <Type>Panel</Type>
+          <Menu>Voxy EasyAnimator</Menu>
+          <Geometry>
+            <Size><Height>760</Height><Width>420</Width></Size>
+            <MinSize><Height>360</Height><Width>300</Width></MinSize>
+            <MaxSize><Height>4000</Height><Width>4000</Width></MaxSize>
+          </Geometry>
+        </UI>
+      </DispatchInfo>
+    </Extension>
+    <Extension Id="com.voxy.easyanimator.full">
+      <DispatchInfo>
+        <Resources>
+          <MainPath>./full.html</MainPath>
+          <CEFCommandLine>
+            <Parameter>--enable-nodejs</Parameter>
+            <Parameter>--mixed-context</Parameter>
+          </CEFCommandLine>
+        </Resources>
+        <Lifecycle><AutoVisible>true</AutoVisible></Lifecycle>
+        <UI>
+          <Type>Modeless</Type>
+          <Menu>Voxy EasyAnimator (Full screen)</Menu>
+          <Geometry>
+            <Size><Height>1000</Height><Width>1600</Width></Size>
+            <MinSize><Height>500</Height><Width>700</Width></MinSize>
+            <MaxSize><Height>8000</Height><Width>8000</Width></MaxSize>
+          </Geometry>
+        </UI>
+      </DispatchInfo>
+    </Extension>
+  </DispatchInfoList>
+</ExtensionManifest>

@@ -15,6 +15,7 @@
     lowMemory: false,                       // upscale setting
     autosaveMinutes: 5,                     // 0 = off
     welcomeDone: false,
+    session: null,                          // {makeJobId, hairJobId, eyes, sample}: lets a reopened or full-screen panel pick up where it was
   };
   const clampInt = (v, lo, hi, d) => { const n = Math.round(Number(v)); return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : d; };
 
@@ -35,6 +36,11 @@
     s.lowMemory = s.lowMemory === true;
     s.autosaveMinutes = clampInt(s.autosaveMinutes, 0, 120, DEFAULTS.autosaveMinutes);
     s.welcomeDone = s.welcomeDone === true;
+    const se = s.session;
+    s.session = se && typeof se === 'object' && typeof se.makeJobId === 'string' && /^[A-Za-z0-9]+$/.test(se.makeJobId)
+      ? { makeJobId: se.makeJobId, hairJobId: typeof se.hairJobId === 'string' && /^[A-Za-z0-9]+$/.test(se.hairJobId) ? se.hairJobId : null,
+          eyes: { hidden: se.eyes && se.eyes.hidden && typeof se.eyes.hidden === 'object' ? se.eyes.hidden : {} }, sample: se.sample === true }
+      : null;
     return s;
   }
 

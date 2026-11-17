@@ -75,6 +75,12 @@ class FakeService {
     this.healthResult = { status: 'ok', device: { cuda_available: true }, log_path: '/logs/voxy-service.log' };
     this.results = {}; this.runDelay = null;
   }
+  async job(id) {
+    const f = fixture();
+    if (id === 'make1') return { job_id: id, status: 'done', manifest: f.clone(f.make) };
+    if (id === 'sub1') return { job_id: id, status: 'done', manifest: f.clone(f.sub) };
+    const e = new Error('gone'); throw e;
+  }
   async health() { return this.healthResult; }
   async preflight() { return this.preflightResult; }
   async getSettings() { return this.settings; }

@@ -50,6 +50,25 @@
       return p;
     }
     clearBanner() { this._set({ banner: null }); }
+    _persistSession() {
+      const m = this.state.make;
+      const session = m.view && m.jobId ? { makeJobId: m.jobId, hairJobId: m.hairJobId || null, eyes: m.eyes, sample: !!m.sample } : null;
+      this.state.settings = settingsLib.sanitize(Object.assign({}, this.state.settings, { session }));
+      this._saveSettings();
+    }
+    async _restoreSession() {
+      const se = this.state.settings.session;
+      if (!se || !this.service) return;
+      try {
+        const base = (await this.service.job(se.makeJobId)).manifest;
+        if (!base || !['ok', 'partial'].includes(base.job.status)) return;
+        let hair = null;
+        if (se.hairJobId) { const h = (await this.service.job(se.hairJobId)).manifest; if (h && h.hair.subdivision.status === 'ok') hair = h; }
+        const view = parts.viewManifest(base, hair);
+        this._set({ make: Object.assign(emptyMake(), { status: 'done', jobId: se.makeJobId, base, view, hairResult: hair, hairJobId: hair ? se.hairJobId : null,
+          sample: se.sample, eyes: eyes.prune(se.eyes, view), skipped: base.skipped || [] }) });
+      } catch (e) { /* the service forgot the job: start fresh */ }
+    }
     _saveSettings() {
       settingsLib.save(this.storage, this.state.settings);
       if (this.service) this.service.putSettings(this.state.settings).catch(() => {});   // a copy for the uninstaller; best effort
@@ -66,6 +85,7 @@
         if (r && r.recovery) this._set({ recovery: r.recovery });
       } catch (e) { this._err(e); }
       await this._connectService();
+      await this._restoreSession();
       if (this.state.settings.fullScreen) this.adapter.setFullScreen(true);
       await this.refreshSelection({ force: true });
       this.startPolling();
@@ -138,6 +158,7 @@
       this.cache.clear();
       if (this.service) this.service.cleanupTmp().catch(() => {});            // temporary upscale files go when a project closes
       this._set({ make: emptyMake(), upscale: emptyUpscale(), canRestore: true, lastAdd: null });
+      this._persistSession();
     }
 
     // ---- settings
@@ -154,10 +175,11 @@
     closeWelcome() { this.setSetting('welcomeDone', true); this._set({ welcome: false }); }
 
     // ---- eyes (panel only: no host call, no project change)
-    toggleEye(id) { this._set({ make: Object.assign({}, this.state.make, { eyes: eyes.toggle(this.state.make.eyes, id) }) }); }
+    toggleEye(id) { this._set({ make: Object.assign({}, this.state.make, { eyes: eyes.toggle(this.state.make.eyes, id) }) }); this._persistSession(); }
     toggleGroupEye(name) {
       const ids = parts.idsInGroup(this.state.make.view, name);
       this._set({ make: Object.assign({}, this.state.make, { eyes: eyes.toggleGroup(this.state.make.eyes, ids) }) });
+      this._persistSession();
     }
 
     // ---- jobs
@@ -171,6 +193,7 @@
       if (!sample && !sel.canMakeLayers(this.state)) return;
       if (!this._begin('make', strings.status.makingLayers)) return;
       this._set({ make: emptyMake() });                                       // eye states are cleared on every run
+      this._persistSession();
       try {
         if (!this.service) await this._connectService();
         if (!this.service) return;
@@ -192,6 +215,7 @@
         if (!names.includes(s.group)) this.setSetting('group', names[0] || 'Head');
         const cpu = (manifest.warnings || []).some((w) => /^GPU_NOT_/.test(w.code));
         this._set({ make: Object.assign(emptyMake(), { status: 'done', jobId, base: manifest, view: manifest, sample, skipped: manifest.skipped || [] }), cpu: this.state.cpu || cpu });
+        this._persistSession();
         let text = strings.status.partsReady(manifest.parts.length);
         if (manifest.skipped && manifest.skipped.length) text += ' ' + strings.status.skipped(manifest.skipped.length);
         if (manifest.job.status === 'partial' && manifest.errors.length) this._warn(text + ' ' + manifest.errors[0].user_message); else this._ok(text);
@@ -253,6 +277,7 @@
         const view = parts.viewManifest(make.base, manifest);
         const subIds = manifest.parts.map((p) => p.id);
         this._set({ make: Object.assign({}, make, { hairResult: manifest, hairJobId: jobId, view, eyes: eyes.afterSubdivide(make.eyes, subIds) }) });
+        this._persistSession();
         this._ok(strings.status.hairReady(subIds.length));
       } catch (e) { this._err(e); } finally { this._end(); }
     }
@@ -266,6 +291,7 @@
         catch (e) { this.adapter.log('warn', 'combine on the service failed; combining in the panel'); }    // the union is the original Hair part anyway
         const subIds = make.hairResult.parts.map((p) => p.id);
         this._set({ make: Object.assign({}, make, { hairResult: null, hairJobId: null, view: make.base, eyes: eyes.afterCombine(make.eyes, subIds) }) });
+        this._persistSession();
         this._ok(strings.status.hairCombined);
       } catch (e) { this._err(e); } finally { this._end(); }
     }

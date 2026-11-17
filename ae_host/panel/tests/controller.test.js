@@ -593,3 +593,34 @@ test('closing the panel ends the session cleanly and stops the timers', async ()
   assert.equal(e.host.count('session_end'), 1);
   assert.deepEqual(e.clock.active, []);
 });
+
+// ------------------------------------------------------------------ switching to the full-screen window keeps the work
+test('a reopened or full-screen panel picks up the same parts, hair sections and eye states', async () => {
+  const a = await H.withParts();
+  a.c.selectGroup('Hair'); await a.c.cutHair();
+  a.c.toggleEye('head'); a.c.toggleGroupEye('Legs');
+  a.c.toggleFullScreen();
+  const b = await H.ready({ storage: a.storage, service: a.service });
+  assert.equal(b.s().make.status, 'done');
+  assert.ok(sel.hairIsSubdivided(b.s()));
+  assert.deepEqual(Object.keys(b.s().make.eyes.hidden).sort(), Object.keys(a.s().make.eyes.hidden).sort());
+  assert.equal(sel.groupEye(b.s(), 'Legs'), 'closed');
+  assert.deepEqual(b.fullscreen, [true]);
+  assert.deepEqual(wrote(b.host), []);
+});
+
+test('a session the service no longer knows is simply dropped', async () => {
+  const a = await H.withParts();
+  const svc = new H.FakeService();
+  svc.job = async () => { throw new Error('gone'); };
+  const b = await H.ready({ storage: a.storage, service: svc });
+  assert.equal(b.s().make.view, null);
+});
+
+test('running Make Layers again forgets the old session', async () => {
+  const a = await H.withParts();
+  a.c.toggleEye('head');
+  await a.c.makeLayers();
+  const b = await H.ready({ storage: a.storage, service: a.service });
+  assert.deepEqual(b.s().make.eyes.hidden, {});
+});
