@@ -17,7 +17,7 @@ panel (JS)  ->  bridge (HTTP, token)  ->  Commands  ->  AeApi (abstract)  ->  Ae
                                                  \->  FakeAe (tests)                                         [tested here]
 ```
 
-Everything above `AeApi` is portable C++ and is unit tested against an in-memory fake After Effects (`ae_host/tests`, 53 tests):
+Everything above `AeApi` is portable C++ and is unit tested against an in-memory fake After Effects (`ae_host/tests`, 54 tests):
 the plan (which parts, which order, which parents), Add to Project, Restore, Apply, save, autosave, crash recovery, the bridge and
 the service supervisor. Only `aegp/ae_api_sdk.cpp` (the thin SDK adapter) is unverified.
 

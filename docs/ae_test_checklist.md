@@ -5,7 +5,7 @@ list says, for every required behaviour, what **was verified** (and how) and wha
 
 Legend: ✅ verified in development · ⚠️ needs a manual test in After Effects · ❌ cannot be verified without the SDK/AE
 
-How things were verified here: **fake AE** = the C++ host core tested against an in-memory After Effects (53 tests, `ctest`);
+How things were verified here: **fake AE** = the C++ host core tested against an in-memory After Effects (54 tests, `ctest`);
 **panel logic** = the panel controller with mock host and service (79 Node tests); **browser** = the real panel in headless Chromium
 against the real service and a stand-in bridge (42 checks); **service** = the Python service tests.
 

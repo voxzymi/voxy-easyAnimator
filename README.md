@@ -37,9 +37,9 @@ python -m pip install -r service/requirements-dev.txt scipy torch torchvision   
 ## Run the tests
 
 ```
-(cd service && PYTHONPATH=$PWD python -m pytest tests -q)                         # 99 tests: manifest, groups, failure paths, hair, upscale, ...
+(cd service && PYTHONPATH=$PWD python -m pytest tests -q)                         # 127 tests: manifest, groups, failure paths, hair, upscale, ...
 PYTHONPATH=service/tests python -m pytest training/tests installer -q              # generator, labeling, training, export, evaluation, help
-cmake -S ae_host -B ae_host/build && cmake --build ae_host/build -j && (cd ae_host/build && ctest --output-on-failure)   # 53 host tests
+cmake -S ae_host -B ae_host/build && cmake --build ae_host/build -j && (cd ae_host/build && ctest --output-on-failure)   # 54 host tests
 (cd ae_host/panel && node --test "tests/*.test.js")                                # 79 panel logic tests
 ```
 
@@ -115,10 +115,10 @@ See [docs/training.md](docs/training.md): `generate_dataset`, the labeling tool 
 
 | Verified here (automated) | Not verified (needs your machine) |
 |---|---|
-| Manifest schema, group field, validator; friendly errors; the two failure rules; health check, cancel, timeouts (service: 99 tests) | The AEGP plug-in: **never compiled**; real layers, masks, undo, save semantics (see the AE checklist) |
+| Manifest schema, group field, validator; friendly errors; the two failure rules; health check, cancel, timeouts (service: 127 tests) | The AEGP plug-in: **never compiled**; real layers, masks, undo, save semantics (see the AE checklist) |
 | Hair geometry (partition, flow direction, smoothing, Combine = union); background fill + edge blend; upscaler wrapper with a stand-in tool | A real `upscayl-ncnn`, Vulkan, the RTX 3060, CUDA, measured VRAM |
 | Dataset generator (exact masks, hidden regions, splits by source, provenance), labeling tool (API + real browser), training loop, FP16/accumulation logic, ONNX export parity, evaluation | Real-art quality: models were trained on synthetic data only, on a CPU; no real art was available |
-| Host logic against a fake After Effects (Add, Restore, Apply, autosave, recovery, bridge: 53 tests) | The Windows installer, signing, and install on a clean machine |
+| Host logic against a fake After Effects (Add, Restore, Apply, autosave, recovery, bridge: 54 tests) | The Windows installer, signing, and install on a clean machine |
 | Panel logic (79 tests) and the real panel UI in Chromium against the real service (42 checks) | The panel inside After Effects (CEP), full-screen window behaviour |
 | Frozen (PyInstaller) service runs `--selftest` with no Python available, on Linux | The same on Windows |
 
